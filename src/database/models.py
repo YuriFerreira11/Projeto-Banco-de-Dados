@@ -1,0 +1,1 @@
+# Tabelas (Torneio, Partida, etc.)

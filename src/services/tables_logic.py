@@ -1,0 +1,1 @@
+#Lógicas das Gerações de Tabelas

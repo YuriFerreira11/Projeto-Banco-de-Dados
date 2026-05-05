@@ -1,0 +1,1 @@
+# Gerenciador de conexão (SQLAlchemy/psycopg2)

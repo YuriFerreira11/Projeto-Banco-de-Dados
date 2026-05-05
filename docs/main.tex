@@ -9,14 +9,18 @@
 \usepackage{hyperref}
 \usepackage{verbatim}
 \usepackage{float} 
+\usepackage{listings} % Para exibir a estrutura de pastas e códigos
+
 \geometry{margin=2.5cm}
 \graphicspath{{images/}}
-\title{Projeto de Banco de Dados}
+
+\title{Projeto de Banco de Dados: Sistema de Gestão de Torneios}
 \author{
 Yuri \\ Matrícula: 24.2.8116
 \and
-Bruno \\ Matrícula: XXXXX
+Bruno Henrique de Paula Silva \\ Matrícula: XXXXX
 }
+
 \begin{document}
 
 \maketitle
@@ -25,119 +29,72 @@ Bruno \\ Matrícula: XXXXX
 \newpage
 
 \section{Introdução}
+Este projeto consiste no desenvolvimento de um sistema desktop para gerenciamento de torneios de futebol. O foco principal é a estruturação de um banco de dados relacional robusto capaz de armazenar dados de equipes, atletas, partidas e eventos (gols e cartões), permitindo a geração automática de tabelas de classificação e estatísticas de desempenho.
 
-Este projeto tem como objetivo o desenvolvimento de um sistema de gerenciamento de torneios esportivos, com foco inicial em competições de futebol. O sistema permitirá a criação e administração de equipes, bem como a organização da tabela do campeonato.
+O diferencial técnico reside na integração de um motor de processamento em Python com uma interface gráfica moderna e reativa, garantindo integridade referencial e eficiência nas consultas ao banco de dados.
 
-A proposta visa estruturar e armazenar informações relevantes, como times participantes, partidas, resultados e classificação, utilizando um banco de dados relacional. Dessa forma, busca-se garantir maior eficiência, integridade e facilidade no gerenciamento das informações do torneio.
-
-Inicialmente, o escopo do sistema será voltado para torneios de futebol, podendo ser expandido futuramente para outras modalidades esportivas.
-
-\section{Objetivo}
-O sistema tem como objetivo principal:
+\section{Objetivos}
 \begin{itemize}
-    \item Descrever o problema
-    \item Apresentar a solução proposta
-    \item Organizar os dados de forma estruturada
+    \item \textbf{Modelagem de Dados:} Criar um esquema relacional normalizado para gerenciar a complexidade de um torneio esportivo.
+    \item \textbf{Automação de Cálculos:} Implementar lógica de negócio para processamento de rankings e critérios de desempate via código.
+    \item \textbf{Gestão Administrativa:} Fornecer uma interface segura para que administradores realizem a manutenção dos dados (CRUD).
 \end{itemize}
 
 \section{Requisitos do Sistema}
 
 \subsection{Requisitos Funcionais}
 \begin{itemize}
-    \item Criar torneios
-    \item Gerenciar esse torneio
-    \item Gerenciar times
+    \item Cadastro e gerenciamento de times e jogadores.
+    \item Registro de partidas com definição de mandantes e visitantes.
+    \item Súmula digital para registro de eventos (gols, cartões) em tempo real.
+    \item Cálculo dinâmico da tabela de classificação (vitórias, empates, derrotas e saldo de gols).
+    \item Sistema de autenticação para diferenciar administradores de visitantes.
 \end{itemize}
 
 \subsection{Requisitos Não Funcionais}
 \begin{itemize}
-
-    \item Criptografia de CPF
+    \item \textbf{Persistência:} Uso do PostgreSQL para armazenamento seguro.
+    \item \textbf{Interface:} Aplicação nativa Desktop com visual moderno (Material Design 3).
+    \item \textbf{Segurança:} Criptografia de dados sensíveis e controle de permissões.
 \end{itemize}
 
 \section{Modelo Conceitual}
-Descreva o modelo entidade-relacionamento (ER).
+O Modelo Entidade-Relacionamento (ER) foca na relação entre entidades como Equipes, Jogadores e Partidas, garantindo que cada evento de jogo esteja vinculado ao contexto correto.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=1\textwidth]{Sem título.jpg}
-   \caption{Modelo Conceitual}
+  \includegraphics[width=0.8\textwidth]{assets/modeloER.png}
+   \caption{Modelo Conceitual (Entidade-Relacionamento)}
 \end{figure}
 
-\begin{comment}
-\section{Modelo Lógico}
-Descreva as tabelas e seus relacionamentos.
-\subsection{Tabela Usuário}
-
-\begin{itemize}
-    \item id (PK)
-    \item nome
-    \item email
-\end{itemize}
-
-\subsection{Tabela Livro}
-\begin{itemize}
-    \item id (PK)
-    \item titulo
-    \item autor
-\end{itemize}
-
-\subsection{Tabela Empréstimo}
-\begin{itemize}
-    \item id (PK)
-    \item id\_usuario (FK)
-    \item id\_livro (FK)
-    \item data\_emprestimo
-\end{itemize}
-\end{comment}
-\section{Modelo Físico}
-Aqui você pode colocar o SQL:
-\begin{comment}
-
-
-\begin{verbatim}
-CREATE TABLE Usuario (
-    id INT PRIMARY KEY,
-    nome VARCHAR(100),
-    email VARCHAR(100)
-);
-
-CREATE TABLE Livro (
-    id INT PRIMARY KEY,
-    titulo VARCHAR(100),
-    autor VARCHAR(100)
-);
-
-CREATE TABLE Emprestimo (
-    id INT PRIMARY KEY,
-    id_usuario INT,
-    id_livro INT,
-    FOREIGN KEY (id_usuario) REFERENCES Usuario(id),
-    FOREIGN KEY (id_livro) REFERENCES Livro(id)
-);
-\end{verbatim}
-\end{comment}
 \section{Tecnologias Utilizadas}
 
-\subsection{Linguagem de Programação}
-O sistema será desenvolvido utilizando a linguagem Python, devido à sua simplicidade e ampla utilização no desenvolvimento de aplicações.
+\subsection{Linguagem e Frameworks}
+\begin{itemize}
+    \item \textbf{Python 3.x:} Linguagem base para o motor do sistema.
+    \item \textbf{Flet:} Framework baseado em Flutter para o desenvolvimento da interface gráfica (GUI) nativa.
+    \item \textbf{SQLAlchemy:} ORM para mapeamento objeto-relacional e manipulação do banco de dados.
+\end{itemize}
 
 \subsection{Banco de Dados}
-Será utilizado o Postgresql como sistema gerenciador de banco de dados, com modelagem relacional para garantir integridade e consistência dos dados.
+\textbf{PostgreSQL:} SGBD Relacional escolhido pela robustez e suporte a consultas complexas e integridade referencial.
 
-\subsection{Interface}
-A interface do sistema poderá ser desenvolvida como:
-\begin{itemize}
-    \item WEB?
-    \item Interface?
-\end{itemize}
+\section{Arquitetura do Sistema}
+A aplicação segue uma estrutura modular para separar a lógica de banco de dados da interface do usuário.
 
-\subsection{Ferramentas}
-\begin{itemize}
-    \item Postgresql
-    \item GitHub
-\end{itemize}
+\begin{lstlisting}[basicstyle=\ttfamily\small, frame=single]
+torneio_flet/
+├── assets/           # Logos e recursos visuais
+├── src/
+│   ├── database/     # Modelos SQLAlchemy e Conexao
+│   ├── services/     # Regras de Negocio (Ranking/Partidas)
+│   ├── ui/           # Views Flet e Componentes
+│   └── config.yaml   # Configuracoes do sistema
+├── main.py           # Entrada da aplicacao
+└── requirements.txt  # Dependencias
+\end{lstlisting}
+
 \section{Conclusão}
-Apresente os resultados obtidos e possíveis melhorias futuras.
+A implementação proposta une a teoria de bancos de dados relacionais com práticas modernas de desenvolvimento de software. A modularização permite que o sistema seja escalável, facilitando futuras expansões para outras modalidades esportivas ou integração com servidores remotos.
 
 \end{document}
