@@ -3,14 +3,20 @@ import sys
 import psycopg2
 import yaml
 
-# Descobre o caminho absoluto para a pasta 'src' de forma dinâmica
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# 1. Pega o diretório onde o db_manager.py está (que é src/database)
+DIRETORIO_SCRIPT = os.path.dirname(os.path.abspath(__file__))
 
-# Caminhos absolutos calibrados com a árvore real do projeto
+# 2. O config.yaml está duas pastas acima (raiz)
+BASE_DIR = os.path.dirname(os.path.dirname(DIRETORIO_SCRIPT))
 PATH_CONFIG = os.path.join(BASE_DIR, "config.yaml")
-PATH_TABELAS = os.path.join(BASE_DIR, "database", "create_tabbles.sql")
-PATH_VIEWS = os.path.join(BASE_DIR, "database", "create_views.sql")
 
+# 3. Os arquivos SQL estão na mesma pasta que este script (src/database)
+# ATENÇÃO: Verifique se o nome do arquivo tem 2 'b' mesmo!
+PATH_TABELAS = os.path.join(DIRETORIO_SCRIPT, "create_tabbles.sql")
+PATH_VIEWS = os.path.join(DIRETORIO_SCRIPT, "create_views.sql")
+
+# DEBUG: Use isso para confirmar se os caminhos estão batendo
+print(f"DEBUG - Buscando SQL em: {PATH_TABELAS}")
 
 def carregar_credenciais():
     """Lê o arquivo yaml e retorna os dados de conexão."""
