@@ -1,0 +1,6 @@
+database:
+  host: "100.125.6.3"
+  port: 5432
+  dbname: "torneio_bd1"
+  user: "admin"
+  password: "220400"
