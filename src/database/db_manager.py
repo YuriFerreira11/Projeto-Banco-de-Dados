@@ -1,46 +1,25 @@
 import os
 import sys
-import psycopg2
-import yaml
 
-# 1. Pega o diretório onde o db_manager.py está (que é src/database)
-DIRETORIO_SCRIPT = os.path.dirname(os.path.abspath(__file__))
-
-# 2. O config.yaml está duas pastas acima (raiz)
-BASE_DIR = os.path.dirname(os.path.dirname(DIRETORIO_SCRIPT))
-PATH_CONFIG = os.path.join(BASE_DIR, "config.yaml")
-
-# 3. Os arquivos SQL estão na mesma pasta que este script (src/database)
-# ATENÇÃO: Verifique se o nome do arquivo tem 2 'b' mesmo!
-PATH_TABELAS = os.path.join(DIRETORIO_SCRIPT, "create_tabbles.sql")
-PATH_VIEWS = os.path.join(DIRETORIO_SCRIPT, "create_views.sql")
-
-# DEBUG: Use isso para confirmar se os caminhos estão batendo
-print(f"DEBUG - Buscando SQL em: {PATH_TABELAS}")
-
-def carregar_credenciais():
-    """Lê o arquivo yaml e retorna os dados de conexão."""
-    if not os.path.exists(PATH_CONFIG):
-        raise FileNotFoundError(f"Arquivo '{PATH_CONFIG}' não encontrado.")
-    with open(PATH_CONFIG, "r") as arquivo:
-        config = yaml.safe_load(arquivo)
-    return config["database"]
+from ConnectionFactory import ConnectionFactory
+from Config.paths import CREATE_TABLES_PATH, CREATE_VIEWS_PATH
 
 
 def executar_arquivo_sql(cursor, caminho_arquivo, descricao):
-    """Lê um arquivo .sql e executa todos os comandos dele no banco."""
     print(f" Executando: {descricao}...")
-    if not os.path.exists(caminho_arquivo):
+
+    if not caminho_arquivo.exists():
         print(f" [❌] Erro: Arquivo não encontrado em {caminho_arquivo}")
         return False
 
-    with open(caminho_arquivo, "r", encoding="utf-8") as arquivo:
+    with caminho_arquivo.open("r", encoding="utf-8") as arquivo:
         conteudo_sql = arquivo.read()
 
     try:
         cursor.execute(conteudo_sql)
         print(f" [✔] {descricao} concluído com sucesso!")
         return True
+
     except Exception as e:
         print(f" [❌] Erro ao executar {descricao}: {e}")
         return False
@@ -64,18 +43,20 @@ def apagar_estrutura_banco():
         DROP TABLE IF EXISTS TIME CASCADE;
         DROP TABLE IF EXISTS TORNEIO CASCADE;
     """
+    conn = ConnectionFactory.get_connection()
+    if not conn:
+        return False
     try:
-        dados_banco = carregar_credenciais()
-        with psycopg2.connect(**dados_banco) as conexao:
-            conexao.autocommit = True
-            with conexao.cursor() as cursor:
-                cursor.execute(comando_limpeza)
+        conn.autocommit = True
+        with conn.cursor() as cursor:
+            cursor.execute(comando_limpeza)
         print(" [✔] Banco de dados limpo com sucesso (0 tabelas restantes).")
         return True
     except Exception as e:
         print(f" [❌] Erro ao limpar o banco de dados: {e}")
         return False
-
+    finally:
+        conn.close()
 
 def criar_estrutura_banco():
     """Executa os scripts SQL para criar as tabelas e as views."""
@@ -83,20 +64,22 @@ def criar_estrutura_banco():
     print("OPERANDO: Criando tabelas e views estruturais...")
     print("-" * 50)
 
+    conn = ConnectionFactory.get_connection()
+    if not conn:
+        return False
     try:
-        dados_banco = carregar_credenciais()
-        with psycopg2.connect(**dados_banco) as conexao:
-            conexao.autocommit = True
-            with conexao.cursor() as cursor:
-                if executar_arquivo_sql(cursor, PATH_TABELAS, "Criação de Tabelas Físicas"):
-                    if executar_arquivo_sql(cursor, PATH_VIEWS, "Criação da Camada de Visões (Views)"):
-                        print(" [✔] Toda a infraestrutura foi mapeada com sucesso.")
-                        return True
+        conn.autocommit = True
+        with conn.cursor() as cursor:
+            if executar_arquivo_sql(cursor, CREATE_TABLES_PATH, "Criação de Tabelas Físicas"):
+                if executar_arquivo_sql(cursor, CREATE_VIEWS_PATH, "Criação da Camada de Visões (Views)"):
+                    print(" [✔] Toda a infraestrutura foi mapeada com sucesso.")
+                    return True
         return False
     except Exception as e:
         print(f" [❌] Erro durante a criação das estruturas: {e}")
         return False
-
+    finally:
+        conn.close()
 
 def restart_banco():
     """Combina as funções de apagar e criar para um reset completo."""
@@ -117,52 +100,55 @@ def restart_banco():
 
 def inspecionar_banco():
     """Testa a conexão e lista o estado atual das tabelas e views."""
-    print("\nLendo o arquivo de configuração...")
-    try:
-        dados_banco = carregar_credenciais()
-    except Exception as e:
-        print(f"Erro ao carregar configurações: {e}")
+    print("\nConectando ao banco de dados via Factory...")
+    conn = ConnectionFactory.get_connection()
+
+    if not conn:
         return
 
-    print(f"Tentando conectar ao host: {dados_banco['host']}...")
     try:
-        with psycopg2.connect(**dados_banco) as conexao:
-            with conexao.cursor() as cursor:
-                cursor.execute("SELECT NOW();")
-                horario_banco = cursor.fetchone()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT NOW();")
+            horario_banco = cursor.fetchone()
 
-                print("\n[CONEXÃO BEM-SUCEDIDA!]")
-                print(f"-> Banco: {dados_banco['dbname']} | Usuário: {dados_banco['user']}")
-                print(f"-> Horário do servidor: {horario_banco[0]}\n")
+            print("\n[CONEXÃO BEM-SUCEDIDA!]")
+            print(f"-> Horário do servidor: {horario_banco[0]}\n")
 
-                # Inspeção de Tabelas
-                print("-" * 50)
-                print("INSPEÇÃO DE TABELAS FÍSICAS (BASE TABLES):")
-                print("-" * 50)
-                cursor.execute("""
-                    SELECT table_name FROM information_schema.tables 
-                    WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY table_name;
-                """)
-                tabelas = cursor.fetchall()
-                for t in tabelas: print(f" [✔] Tabela: {t[0]}")
-                if not tabelas: print(" [⚠] Nenhuma tabela física encontrada.")
+            # Inspeção de Tabelas
+            print("-" * 50)
+            print("INSPEÇÃO DE TABELAS FÍSICAS (BASE TABLES):")
+            print("-" * 50)
+            cursor.execute("""
+                           SELECT table_name
+                           FROM information_schema.tables
+                           WHERE table_schema = 'public'
+                             AND table_type = 'BASE TABLE'
+                           ORDER BY table_name;
+                           """)
+            tabelas = cursor.fetchall()
+            for t in tabelas: print(f" [✔] Tabela: {t[0]}")
+            if not tabelas: print(" [⚠] Nenhuma tabela física encontrada.")
 
-                # Inspeção de Views
-                print("\n" + "-" * 50)
-                print("INSPEÇÃO DE TABELAS VIRTUAIS (VIEWS):")
-                print("-" * 50)
-                cursor.execute("""
-                    SELECT table_name FROM information_schema.tables 
-                    WHERE table_schema = 'public' AND table_type = 'VIEW' ORDER BY table_name;
-                """)
-                views = cursor.fetchall()
-                for v in views: print(f" [★] View: {v[0]}")
-                if not views: print(" [⚠] Nenhuma View encontrada.")
-                print("-" * 50 + "\n")
+            # Inspeção de Views
+            print("\n" + "-" * 50)
+            print("INSPEÇÃO DE TABELAS VIRTUAIS (VIEWS):")
+            print("-" * 50)
+            cursor.execute("""
+                           SELECT table_name
+                           FROM information_schema.tables
+                           WHERE table_schema = 'public'
+                             AND table_type = 'VIEW'
+                           ORDER BY table_name;
+                           """)
+            views = cursor.fetchall()
+            for v in views: print(f" [★] View: {v[0]}")
+            if not views: print(" [⚠] Nenhuma View encontrada.")
+            print("-" * 50 + "\n")
 
     except Exception as erro:
-        print(f"\n[FALHA NA CONEXÃO]: {erro}")
-
+        print(f"\n[FALHA NA INSPEÇÃO]: {erro}")
+    finally:
+        conn.close()
 
 def exibir_menu():
     print("\n" + "=" * 45)
@@ -177,6 +163,8 @@ def exibir_menu():
 
 
 def menu_principal():
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("\n" * 2)
     while True:
         exibir_menu()
         opcao = input("Escolha uma opção: ").strip()
