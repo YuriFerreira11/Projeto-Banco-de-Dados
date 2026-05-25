@@ -99,51 +99,61 @@ def restart_banco():
 
 
 def inspecionar_banco():
-    """Testa a conexão e lista o estado atual das tabelas e views."""
+    """Lista as tabelas e views com atributos identificando PKs e FKs."""
     print("\nConectando ao banco de dados via Factory...")
     conn = ConnectionFactory.get_connection()
-
-    if not conn:
-        return
+    if not conn: return
 
     try:
         with conn.cursor() as cursor:
-            cursor.execute("SELECT NOW();")
-            horario_banco = cursor.fetchone()
-
             print("\n[CONEXÃO BEM-SUCEDIDA!]")
-            print(f"-> Horário do servidor: {horario_banco[0]}\n")
 
-            # Inspeção de Tabelas
-            print("-" * 50)
-            print("INSPEÇÃO DE TABELAS FÍSICAS (BASE TABLES):")
-            print("-" * 50)
-            cursor.execute("""
-                           SELECT table_name
-                           FROM information_schema.tables
-                           WHERE table_schema = 'public'
-                             AND table_type = 'BASE TABLE'
-                           ORDER BY table_name;
-                           """)
-            tabelas = cursor.fetchall()
-            for t in tabelas: print(f" [✔] Tabela: {t[0]}")
-            if not tabelas: print(" [⚠] Nenhuma tabela física encontrada.")
+            def imprimir_objetos(tipo_objeto, rotulo, icone):
+                print("-" * 80)
+                print(f"{rotulo}")
+                print("-" * 80)
 
-            # Inspeção de Views
-            print("\n" + "-" * 50)
-            print("INSPEÇÃO DE TABELAS VIRTUAIS (VIEWS):")
-            print("-" * 50)
-            cursor.execute("""
-                           SELECT table_name
-                           FROM information_schema.tables
-                           WHERE table_schema = 'public'
-                             AND table_type = 'VIEW'
-                           ORDER BY table_name;
-                           """)
-            views = cursor.fetchall()
-            for v in views: print(f" [★] View: {v[0]}")
-            if not views: print(" [⚠] Nenhuma View encontrada.")
-            print("-" * 50 + "\n")
+                cursor.execute(f"""
+                    SELECT table_name FROM information_schema.tables
+                    WHERE table_schema = 'public' AND table_type = '{tipo_objeto}'
+                    ORDER BY table_name;
+                """)
+                objetos = cursor.fetchall()
+
+                for obj in objetos:
+                    nome_obj = obj[0]
+                    # Query avançada para buscar colunas e seus tipos de restrição (PK/FK)
+                    cursor.execute(f"""
+                        SELECT 
+                            cols.column_name,
+                            CASE 
+                                WHEN tc.constraint_type = 'PRIMARY KEY' THEN 'PK'
+                                WHEN tc.constraint_type = 'FOREIGN KEY' THEN 'FK'
+                                ELSE ''
+                            END as constraint_label
+                        FROM information_schema.columns cols
+                        LEFT JOIN information_schema.key_column_usage kcu 
+                            ON cols.column_name = kcu.column_name 
+                            AND cols.table_name = kcu.table_name
+                        LEFT JOIN information_schema.table_constraints tc 
+                            ON kcu.constraint_name = tc.constraint_name
+                        WHERE cols.table_name = '{nome_obj}'
+                        ORDER BY cols.ordinal_position;
+                    """)
+
+                    colunas_raw = cursor.fetchall()
+                    formatadas = []
+                    for col, label in colunas_raw:
+                        # Adiciona (PK) ou (FK) ao lado do nome se existir
+                        tag = f" ({label})" if label else ""
+                        formatadas.append(f"{col}{tag}")
+
+                    print(f" {icone} {nome_obj.capitalize()}({', '.join(formatadas)})")
+                print("-" * 80)
+
+            imprimir_objetos('BASE TABLE', 'ESQUEMA RELACIONAL (TABELAS FÍSICAS)', '[✔]')
+            print()
+            imprimir_objetos('VIEW', 'CAMADA DE VISÃO (VIEWS)', '[★]')
 
     except Exception as erro:
         print(f"\n[FALHA NA INSPEÇÃO]: {erro}")
