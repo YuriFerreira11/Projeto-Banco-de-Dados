@@ -1,56 +1,35 @@
--- 1. Classificação
-CREATE OR REPLACE VIEW VIEW_CLASSIFICACAO_GERAL AS
-WITH Pontuacao_Consolidada AS (
-    -- Dados como Mandante
-    SELECT
-        ID_Time_Mandante AS ID_Time,
-        CASE
-            WHEN Gols_M > Gols_V THEN 3
-            WHEN Gols_M = Gols_V THEN 1
-            ELSE 0
-        END AS Pontos,
-        CASE WHEN Gols_M > Gols_V THEN 1 ELSE 0 END AS Vitoria,
-        CASE WHEN Gols_M = Gols_V THEN 1 ELSE 0 END AS Empate,
-        CASE WHEN Gols_M < Gols_V THEN 1 ELSE 0 END AS Derrota,
-        Gols_M AS Gols_Feitos,
-        Gols_V AS Gols_Sofridos
-    FROM Partidas
-    UNION ALL
-    -- Dados como Visitante
-    SELECT
-        ID_Time_Visitante AS ID_Time,
-        CASE
-            WHEN Gols_V > Gols_M THEN 3
-            WHEN Gols_V = Gols_M THEN 1
-            ELSE 0
-        END AS Pontos,
-        CASE WHEN Gols_V > Gols_M THEN 1 ELSE 0 END AS Vitoria,
-        CASE WHEN Gols_V = Gols_M THEN 1 ELSE 0 END AS Empate,
-        CASE WHEN Gols_V < Gols_M THEN 1 ELSE 0 END AS Derrota,
-        Gols_V AS Gols_Feitos,
-        Gols_M AS Gols_Sofridos
-    FROM Partidas
-),
-Ranking_Base AS (
-    SELECT
-        t.Nome AS Nome_Time,
-        COALESCE(SUM(p.Pontos), 0) AS Pontos,
-        COALESCE(SUM(p.Vitoria), 0) AS Vitorias,
-        COALESCE(SUM(p.Empate), 0) AS Empates,
-        COALESCE(SUM(p.Derrota), 0) AS Derrotas,
-        COALESCE(SUM(p.Gols_Feitos), 0) AS GF,
-        COALESCE(SUM(p.Gols_Sofridos), 0) AS GS,
-        COALESCE(SUM(p.Gols_Feitos), 0) - COALESCE(SUM(p.Gols_Sofridos), 0) AS Saldo_Gols
-    FROM Time t
-    LEFT JOIN Pontuacao_Consolidada p ON t.ID_Time = p.ID_Time
-    GROUP BY t.ID_Time, t.Nome
-)
--- Aqui criamos a coluna "posicao" de fato
+CREATE OR REPLACE VIEW View_classificacao_geral AS
 SELECT
-    ROW_NUMBER() OVER (ORDER BY Pontos DESC, Vitorias DESC, Saldo_Gols DESC) AS posicao,
-    *
-FROM Ranking_Base
-ORDER BY posicao ASC;
+    p.id_torneio,      -- COLUNA FALTANTE ADICIONADA
+    t.nome AS nome_time,
+    t.escudo,
+    -- Ranking fictício apenas para exemplo, ajuste conforme seu cálculo real:
+    ROW_NUMBER() OVER(PARTITION BY p.id_torneio ORDER BY SUM(
+        CASE
+            WHEN (t.id_time = p.id_time_mandante AND p.gols_m > p.gols_v) OR
+                 (t.id_time = p.id_time_visitante AND p.gols_v > p.gols_m) THEN 3
+            WHEN p.gols_m = p.gols_v THEN 1
+            ELSE 0
+        END
+    ) DESC) as posicao,
+    SUM(
+        CASE
+            WHEN (t.id_time = p.id_time_mandante AND p.gols_m > p.gols_v) OR
+                 (t.id_time = p.id_time_visitante AND p.gols_v > p.gols_m) THEN 3
+            WHEN p.gols_m = p.gols_v THEN 1
+            ELSE 0
+        END
+    ) AS pontos,
+    COUNT(*) AS partidas_jogadas,
+    SUM(CASE WHEN (t.id_time = p.id_time_mandante AND p.gols_m > p.gols_v) OR (t.id_time = p.id_time_visitante AND p.gols_v > p.gols_m) THEN 1 ELSE 0 END) AS vitorias,
+    SUM(CASE WHEN p.gols_m = p.gols_v THEN 1 ELSE 0 END) AS empates,
+    SUM(CASE WHEN (t.id_time = p.id_time_mandante AND p.gols_m < p.gols_v) OR (t.id_time = p.id_time_visitante AND p.gols_v < p.gols_m) THEN 1 ELSE 0 END) AS derrotas,
+    SUM(CASE WHEN t.id_time = p.id_time_mandante THEN p.gols_m ELSE p.gols_v END) AS gf,
+    SUM(CASE WHEN t.id_time = p.id_time_mandante THEN p.gols_v ELSE p.gols_m END) AS gs,
+    SUM(CASE WHEN t.id_time = p.id_time_mandante THEN p.gols_m - p.gols_v ELSE p.gols_v - p.gols_m END) AS saldo_gols
+FROM Time t
+JOIN Partidas p ON (t.id_time = p.id_time_mandante OR t.id_time = p.id_time_visitante)
+GROUP BY p.id_torneio, t.id_time, t.nome, t.escudo;
 
 
 -- 2. Resultados e Agendamentos

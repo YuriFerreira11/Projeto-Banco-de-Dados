@@ -2,61 +2,80 @@ import flet as ft
 import sys
 import os
 
-# FORÇA O PYTHON A ACHAR A PASTA SRC
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
-
 from src.ui.router import Router
 
+
 def main(page: ft.Page):
-    page.title = "Súmula Digital - Torneio"
+    page.title = "Súmula Digital - Torneio Manager"
     page.theme_mode = ft.ThemeMode.DARK
-    page.window_width = 1100
-    page.window_height = 800
+    page.window_width = 1200
+    page.window_height = 850
     page.window_center()
 
-    # Container onde o conteúdo das abas será injetado
     main_content = ft.Column(
         expand=True,
         scroll=ft.ScrollMode.ADAPTIVE,
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER
+        horizontal_alignment=ft.CrossAxisAlignment.STRETCH
     )
 
-    # Inicializa o Router passando o container
-    router = Router(main_content)
+    router = Router(main_content, page)
 
-    # --- Barra de Navegação ---
-    page.navigation_bar = ft.NavigationBar(
-        selected_index=0,
-        destinations=[
-            ft.NavigationDestination(icon=ft.icons.TABLE_ROWS, label="Times"),
-            ft.NavigationDestination(icon=ft.icons.GROUPS, label="Jogadores"),
-            ft.NavigationDestination(icon=ft.icons.SPORTS_SOCCER, label="Partidas"),
-            ft.NavigationDestination(icon=ft.icons.EMOJI_EVENTS, label="Classificação"),
-        ],
-        on_change=lambda e: router.navigate(
-            ["times", "jogadores", "partidas", "classificacao"][e.control.selected_index]
+    btn_voltar = ft.Container(
+        content=ft.TextButton(
+            content=ft.Row([
+                ft.Icon(ft.icons.ARROW_BACK_IOS_NEW, size=16, color=ft.colors.AMBER),
+                ft.Text("TROCAR TORNEIO", color=ft.colors.AMBER, size=12, weight="bold"),
+            ], tight=True),
+            on_click=lambda _: router.navigate("selecao_torneio"),
+        ),
+        visible=False,
+    )
+
+    btn_admin = ft.Container(
+        content=ft.TextButton(
+            content=ft.Row([
+                ft.Text("MODO ADMIN", color=ft.colors.WHITE70, size=12, weight="bold"),
+                ft.Icon(ft.icons.LOCK_OUTLINED, size=16, color=ft.colors.WHITE70),
+            ], tight=True),
+            on_click=lambda _: page.open(
+                ft.SnackBar(ft.Text("Módulo administrativo será habilitado em breve."))
+            ),
+        ),
+        alignment=ft.alignment.center_right,
+    )
+
+    router.botao_trocar = btn_voltar
+
+    header = ft.Container(
+        content=ft.Row([
+            ft.Container(content=btn_voltar, expand=1, alignment=ft.alignment.center_left),
+            ft.Container(
+                content=ft.Row([
+                    ft.Icon(ft.icons.EMOJI_EVENTS, color=ft.colors.AMBER, size=30),
+                    ft.Text("TORNEIO MANAGER", size=24, weight="bold"),
+                ], alignment=ft.MainAxisAlignment.CENTER, tight=True),
+                expand=2,
+                alignment=ft.alignment.center
+            ),
+            ft.Container(content=btn_admin, expand=1, alignment=ft.alignment.center_right)
+        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+        padding=ft.padding.symmetric(horizontal=25, vertical=15),
+        bgcolor=ft.colors.BLACK26
+    )
+
+    page.add(
+        header,
+        ft.Divider(height=1, color=ft.colors.WHITE10),
+        ft.Container(
+            content=main_content,
+            expand=True,
+            padding=10
         )
     )
 
-    # --- Estrutura Fixa (Header + Conteúdo) ---
-    page.add(
-        ft.Container(
-            content=ft.Row(
-                [
-                    ft.Text("🏆 Torneio Manager", size=32, weight="bold"),
-                    ft.VerticalDivider(width=20),
-                    ft.Text("Banco de Dados Ativo", color=ft.colors.GREEN_ACCENT, weight="bold")
-                ],
-                alignment=ft.MainAxisAlignment.CENTER
-            ),
-            padding=20
-        ),
-        ft.Divider(height=1, color=ft.colors.OUTLINE_VARIANT),
-        ft.Container(content=main_content, expand=True, padding=20)
-    )
+    router.navigate("selecao_torneio")
 
-    # Carrega a tela inicial
-    router.navigate("times")
 
 if __name__ == "__main__":
     ft.app(target=main)

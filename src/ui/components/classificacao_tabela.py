@@ -1,6 +1,7 @@
 import flet as ft
 
-def criar_tabela_dados(lista_objetos):
+
+def criar_tabela_classificacao(lista_objetos):
     if not lista_objetos:
         return ft.Container(
             content=ft.Text("Nenhum registro encontrado.", size=16),

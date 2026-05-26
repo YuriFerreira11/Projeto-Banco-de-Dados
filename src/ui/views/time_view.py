@@ -1,5 +1,5 @@
 import flet as ft
-from src.ui.components.data_table import criar_tabela_dados
+from src.ui.components.classificacao_tabela import criar_tabela_classificacao
 
 
 def tela_detalhes_time(time_obj, dados_classificacao, jogadores, ao_voltar):
@@ -86,7 +86,7 @@ def tela_detalhes_time(time_obj, dados_classificacao, jogadores, ao_voltar):
 
         # A tabela de dados
         ft.Container(
-            content=criar_tabela_dados(jogadores),
+            content=criar_tabela_classificacao(jogadores),
             alignment=ft.alignment.center
         )
     ], horizontal_alignment="center")

@@ -53,3 +53,33 @@ INSERT INTO Partidas (Data_Hora, Local, ID_Torneio, ID_Time_Mandante, Gols_M, ID
 ('2026-05-22 16:00:00', 'Vila Belmiro', 1, 17, 0, 3, 2),
 ('2026-05-22 18:00:00', 'Arena da Baixada', 1, 4, 1, 5, 2),
 ('2026-05-22 21:00:00', 'Barradão', 1, 11, 0, 14, 1);
+
+
+
+-- 1. NOVO TORNEIO
+INSERT INTO Torneio (Nome, Data_Inicio, Data_Fim)
+VALUES ('Série B 2026', '2026-02-01', '2026-11-30');
+
+-- 2. NOVOS TIMES (Para a Série B)
+INSERT INTO Time (Nome, Escudo) VALUES
+('Sport Recife', 'https://upload.wikimedia.org/wikipedia/pt/1/17/Sport_Club_do_Recife.png'),
+('Ceará', 'https://upload.wikimedia.org/wikipedia/pt/4/4c/Ceara_SC_Logo.png'),
+('Goiás', 'https://upload.wikimedia.org/wikipedia/pt/b/be/Goiás_Esporte_Clube_logo.png'),
+('Avaí', 'https://upload.wikimedia.org/wikipedia/pt/f/f3/Avai_FC_2005.png'),
+('Ponte Preta', 'https://upload.wikimedia.org/wikipedia/pt/9/90/Ponte_Preta_logo.png'),
+('Guarani', 'https://upload.wikimedia.org/wikipedia/pt/4/41/Guarani_Futebol_Clube_logo.png');
+
+-- 3. JOGADORES PARA OS NOVOS TIMES
+-- (IDs 21 a 26 baseados no insert acima)
+INSERT INTO Jogador (CPF, Nome, Funcao, ID_Time) VALUES
+('21000000001', 'Diego Souza', 'Atacante', 21),
+('22000000001', 'Vina', 'Meia', 22),
+('23000000001', 'Tadeu', 'Goleiro', 23),
+('24000000001', 'Vagner Love', 'Atacante', 24);
+
+-- 4. PARTIDAS DA SÉRIE B (ID_Torneio = 2)
+-- Aqui testamos se o filtro por ID_Torneio está funcionando no seu Router/Queries
+INSERT INTO Partidas (Data_Hora, Local, ID_Torneio, ID_Time_Mandante, Gols_M, ID_Time_Visitante, Gols_V) VALUES
+('2026-05-24 16:00:00', 'Ilha do Retiro', 2, 21, 2, 22, 1), -- Sport 2 x 1 Ceará
+('2026-05-24 18:00:00', 'Serrinha', 2, 23, 0, 24, 0),      -- Goiás 0 x 0 Avaí
+('2026-05-25 20:00:00', 'Moisés Lucarelli', 2, 25, 1, 26, 1); -- Derby Campineiro

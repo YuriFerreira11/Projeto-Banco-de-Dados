@@ -1,7 +1,7 @@
 import flet as ft
 
 
-def criar_grid_times(lista_times, ao_clicar_no_time):
+def criar_card_times(lista_times, ao_clicar_no_time):
     if not lista_times:
         return ft.Text("Nenhum time cadastrado.")
 
