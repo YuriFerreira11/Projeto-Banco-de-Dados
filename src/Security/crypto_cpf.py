@@ -1,5 +1,5 @@
 from cryptography.fernet import Fernet
-from Config.paths import CONFIG_PATH
+from config.paths import CONFIG_PATH
 import yaml
 
 

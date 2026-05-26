@@ -1,5 +1,4 @@
 class Time:
-    def __init__(self, id_time, nome, escudo):
-        self.id_time = id_time
+    def __init__(self, nome, logo):
         self.nome = nome
-        self.escudo = escudo
+        self.logo = logo

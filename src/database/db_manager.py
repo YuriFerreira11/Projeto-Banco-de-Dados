@@ -2,7 +2,7 @@ import os
 import sys
 
 from connection_factory import ConnectionFactory
-from Config.paths import CREATE_TABLES_PATH, CREATE_VIEWS_PATH
+from config.paths import CREATE_TABLES_PATH, CREATE_VIEWS_PATH
 
 
 def executar_arquivo_sql(cursor, caminho_arquivo, descricao):

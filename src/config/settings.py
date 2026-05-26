@@ -1,6 +1,6 @@
 import yaml
 
-from src.Config.paths import CONFIG_PATH
+from src.config.paths import CONFIG_PATH
 
 
 with CONFIG_PATH.open("r",encoding="utf-8") as ymlfile:
