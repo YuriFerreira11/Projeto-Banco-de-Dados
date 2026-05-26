@@ -15,9 +15,7 @@ WITH Pontuacao_Consolidada AS (
         Gols_M AS Gols_Feitos,
         Gols_V AS Gols_Sofridos
     FROM Partidas
-
     UNION ALL
-
     -- Dados como Visitante
     SELECT
         ID_Time_Visitante AS ID_Time,
@@ -32,20 +30,27 @@ WITH Pontuacao_Consolidada AS (
         Gols_V AS Gols_Feitos,
         Gols_M AS Gols_Sofridos
     FROM Partidas
+),
+Ranking_Base AS (
+    SELECT
+        t.Nome AS Nome_Time,
+        COALESCE(SUM(p.Pontos), 0) AS Pontos,
+        COALESCE(SUM(p.Vitoria), 0) AS Vitorias,
+        COALESCE(SUM(p.Empate), 0) AS Empates,
+        COALESCE(SUM(p.Derrota), 0) AS Derrotas,
+        COALESCE(SUM(p.Gols_Feitos), 0) AS GF,
+        COALESCE(SUM(p.Gols_Sofridos), 0) AS GS,
+        COALESCE(SUM(p.Gols_Feitos), 0) - COALESCE(SUM(p.Gols_Sofridos), 0) AS Saldo_Gols
+    FROM Time t
+    LEFT JOIN Pontuacao_Consolidada p ON t.ID_Time = p.ID_Time
+    GROUP BY t.ID_Time, t.Nome
 )
+-- Aqui criamos a coluna "posicao" de fato
 SELECT
-    t.Nome AS Nome_Time,
-    COALESCE(SUM(p.Pontos), 0) AS Pontos,
-    COALESCE(SUM(p.Vitoria), 0) AS Vitorias,
-    COALESCE(SUM(p.Empate), 0) AS Empates,
-    COALESCE(SUM(p.Derrota), 0) AS Derrotas,
-    COALESCE(SUM(p.Gols_Feitos), 0) AS GF,
-    COALESCE(SUM(p.Gols_Sofridos), 0) AS GS,
-    COALESCE(SUM(p.Gols_Feitos), 0) - COALESCE(SUM(p.Gols_Sofridos), 0) AS Saldo_Gols
-FROM Time t
-LEFT JOIN Pontuacao_Consolidada p ON t.ID_Time = p.ID_Time
-GROUP BY t.ID_Time, t.Nome
-ORDER BY Pontos DESC, Vitorias DESC, Saldo_Gols DESC;
+    ROW_NUMBER() OVER (ORDER BY Pontos DESC, Vitorias DESC, Saldo_Gols DESC) AS posicao,
+    *
+FROM Ranking_Base
+ORDER BY posicao ASC;
 
 
 -- 2. Resultados e Agendamentos

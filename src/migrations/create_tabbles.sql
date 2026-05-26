@@ -36,7 +36,7 @@ CREATE TABLE Torneio_Admin (
 CREATE TABLE Time (
     ID_Time SERIAL PRIMARY KEY,
     Nome VARCHAR(255) NOT NULL,
-    Logo VARCHAR(255)
+    Escudo VARCHAR(255)
 );
 
 --- 5. Tabela: JOGADOR

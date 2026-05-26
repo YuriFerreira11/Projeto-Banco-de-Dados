@@ -1,7 +1,7 @@
 import os
 import sys
 
-from ConnectionFactory import ConnectionFactory
+from connection_factory import ConnectionFactory
 from Config.paths import CREATE_TABLES_PATH, CREATE_VIEWS_PATH
 
 
