@@ -1,4 +1,4 @@
-from database.connection_factory import ConnectionFactory
+from src.database.connection_factory import ConnectionFactory
 from model.Jogador import Jogador
 
 class JogadorRepository:

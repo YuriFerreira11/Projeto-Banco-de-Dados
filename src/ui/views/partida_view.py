@@ -1,76 +1,201 @@
+"""
+View pública: exibe rodadas e placares (somente leitura).
+View admin: lança resultados das partidas.
+"""
 import flet as ft
+from src.repository import partidas_repository as partidas_repo
 
 
-def tela_detalhes_partida(partida_obj, time_m, time_v, ao_voltar):
-    # Fallback para caso os objetos de time não sejam encontrados
-    nome_m = time_m.nome if time_m else "Mandante"
-    escudo_m = time_m.escudo if time_m else ""
-    nome_v = time_v.nome if time_v else "Visitante"
-    escudo_v = time_v.escudo if time_v else ""
+class RodadasView:
+    """Visualização pública — sem edição."""
 
-    return ft.Column([
-        # Cabeçalho
-        ft.Row([
-            ft.IconButton(ft.icons.ARROW_BACK, on_click=lambda _: ao_voltar()),
-            ft.Text("DETALHES DA PARTIDA", size=24, weight="bold")
-        ]),
+    def __init__(self, router, page: ft.Page,
+                 id_torneio: int = None, rodada: int = 1, **kwargs):
+        self.router     = router
+        self.page       = page
+        self.id_torneio = id_torneio
+        self.rodada     = rodada
 
-        ft.Divider(height=30, color=ft.colors.WHITE10),
+    def build(self) -> ft.Control:
+        rodadas  = partidas_repo.listar_rodadas(self.id_torneio)
+        total    = len(rodadas)
+        partidas = partidas_repo.partidas_da_rodada(self.id_torneio, self.rodada)
 
-        # PLACAR ESTILO TRANSMISSÃO
-        ft.Container(
-            content=ft.Row([
-                # Mandante
-                ft.Column([
-                    ft.Image(src=escudo_m, width=100, height=100, fit=ft.ImageFit.CONTAIN),
-                    ft.Text(nome_m.upper(), size=20, weight="bold"),
-                    ft.Text("MANDANTE", size=12, color=ft.colors.WHITE54)
-                ], horizontal_alignment="center", expand=True),
+        def ir(r):
+            self.router.navigate_rodadas(self.id_torneio, r)
 
-                # Placar Central
-                ft.Container(
-                    content=ft.Row([
-                        ft.Text(f"{partida_obj.gols_m}", size=60, weight="w900"),
-                        ft.Text("X", size=24, color=ft.colors.GREEN_ACCENT, weight="bold"),
-                        ft.Text(f"{partida_obj.gols_v}", size=60, weight="w900"),
-                    ], alignment=ft.MainAxisAlignment.CENTER, spacing=30),
-                    bgcolor=ft.colors.BLACK38,
-                    padding=ft.padding.symmetric(horizontal=30, vertical=10),
-                    border_radius=15
+        cards = ft.Column(spacing=10)
+        for p in partidas:
+            gm = p.get("gols_m") 
+            gv = p.get("gols_v")
+            placar = f"{gm}  ×  {gv}" if p.get("finalizada") else "× × ×"
+            cor_placar = ft.colors.AMBER if p.get("finalizada") else ft.colors.WHITE38
+
+            cards.controls.append(ft.Container(
+                content=ft.Row([
+                    ft.Text(p["casa"], expand=2, weight="bold",
+                            text_align=ft.TextAlign.RIGHT),
+                    ft.Text(placar, size=18, weight="bold",
+                            color=cor_placar,
+                            text_align=ft.TextAlign.CENTER, expand=1),
+                    ft.Text(p["fora"], expand=2, weight="bold"),
+                ], alignment=ft.MainAxisAlignment.CENTER),
+                padding=ft.padding.symmetric(horizontal=16, vertical=14),
+                bgcolor=ft.colors.WHITE10,
+                border_radius=10,
+            ))
+
+        nav = ft.Row([
+            ft.IconButton(
+                icon=ft.icons.ARROW_BACK_IOS,
+                on_click=lambda _: ir(self.rodada - 1),
+                disabled=self.rodada <= 1,
+                icon_color=ft.colors.AMBER,
+            ),
+            ft.Text(f"Rodada {self.rodada} / {total}", size=16, weight="bold"),
+            ft.IconButton(
+                icon=ft.icons.ARROW_FORWARD_IOS,
+                on_click=lambda _: ir(self.rodada + 1),
+                disabled=self.rodada >= total,
+                icon_color=ft.colors.AMBER,
+            ),
+        ], alignment=ft.MainAxisAlignment.CENTER)
+
+        return ft.Column([
+            ft.Row([
+                ft.Text("Rodadas", size=22, weight="bold", color=ft.colors.AMBER),
+                ft.ElevatedButton(
+                    "Classificação", icon=ft.icons.LEADERBOARD,
+                    bgcolor=ft.colors.WHITE12, color=ft.colors.WHITE,
+                    on_click=lambda _: self.router.navigate("classificacao"),
                 ),
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            ft.Divider(color=ft.colors.WHITE10),
+            nav,
+            cards,
+        ], spacing=12, expand=True, scroll=ft.ScrollMode.ADAPTIVE)
 
-                # Visitante
-                ft.Column([
-                    ft.Image(src=escudo_v, width=100, height=100, fit=ft.ImageFit.CONTAIN),
-                    ft.Text(nome_v.upper(), size=20, weight="bold"),
-                    ft.Text("VISITANTE", size=12, color=ft.colors.WHITE54)
-                ], horizontal_alignment="center", expand=True),
-            ], alignment=ft.MainAxisAlignment.CENTER),
-            padding=40,
-            bgcolor="#1E1E1E",
-            border_radius=20,
-            border=ft.border.all(1, ft.colors.WHITE10)
-        ),
 
-        ft.Container(height=20),
+class AdminRodadasView:
+    """Interface do admin para lançar resultados."""
 
-        # INFORMAÇÕES DA PARTIDA (DATA E LOCAL)
-        ft.ResponsiveRow([
-            ft.Container(
-                content=ft.Column([
-                    ft.Row([
-                        ft.Icon(ft.icons.EVENT_AVAILABLE, color=ft.colors.GREEN_ACCENT),
-                        ft.Text(f"DATA E HORA: {partida_obj.data_hora}", size=16)
-                    ]),
-                    ft.Row([
-                        ft.Icon(ft.icons.LOCATION_ON, color=ft.colors.RED_ACCENT),
-                        ft.Text(f"LOCAL: {partida_obj.local}", size=16)
-                    ]),
-                ], spacing=15),
-                col={"md": 12},
-                bgcolor="#2C2C2C",
-                padding=25,
-                border_radius=15
+    def __init__(self, router, page: ft.Page,
+                 id_torneio: int = None, rodada: int = 1, **kwargs):
+        self.router     = router
+        self.page       = page
+        self.id_torneio = id_torneio
+        self.rodada     = rodada
+
+    def build(self) -> ft.Control:
+        rodadas  = partidas_repo.listar_rodadas(self.id_torneio)
+        total    = len(rodadas)
+        partidas = partidas_repo.partidas_da_rodada(self.id_torneio, self.rodada)
+
+        status = ft.Text("", size=12)
+        cards  = ft.Column(spacing=10)
+
+        def ir(r):
+            self.router.navigate_admin_rodadas(self.id_torneio, r)
+
+        def build_card(p):
+            finalizada = bool(p.get("finalizada"))
+            gm = p.get("gols_m")
+            gv = p.get("gols_v")
+
+            gc_field = ft.TextField(
+                value="" if gm is None else str(gm),
+                width=60, text_align=ft.TextAlign.CENTER,
+                border_color=ft.colors.AMBER,
+                disabled=finalizada,
+                input_filter=ft.NumbersOnlyInputFilter(),
             )
-        ])
-    ], scroll=ft.ScrollMode.ADAPTIVE, expand=True)
+            gf_field = ft.TextField(
+                value="" if gv is None else str(gv),
+                width=60, text_align=ft.TextAlign.CENTER,
+                border_color=ft.colors.AMBER,
+                disabled=finalizada,
+                input_filter=ft.NumbersOnlyInputFilter(),
+            )
+
+            def salvar(e, pid=p["id_partida"]):
+                try:
+                    gc = int(gc_field.value)
+                    gf = int(gf_field.value)
+                except ValueError:
+                    status.value = "⚠️ Digite números válidos."
+                    status.color = ft.colors.RED_300
+                    status.update(); return
+
+                ok = partidas_repo.registrar_resultado(pid, gc, gf)
+                if ok:
+                    status.value = "✅ Resultado salvo!"
+                    status.color = ft.colors.GREEN_300
+                    gc_field.disabled = True
+                    gf_field.disabled = True
+                    gc_field.update(); gf_field.update()
+                else:
+                    status.value = "Partida já finalizada."
+                    status.color = ft.colors.WHITE54
+                status.update()
+
+            return ft.Container(
+                content=ft.Row([
+                    ft.Text(p["casa"], expand=2, weight="bold",
+                            text_align=ft.TextAlign.RIGHT),
+                    gc_field,
+                    ft.Text("×", size=16, weight="bold",
+                            text_align=ft.TextAlign.CENTER),
+                    gf_field,
+                    ft.Text(p["fora"], expand=2, weight="bold"),
+                    ft.IconButton(
+                        icon=ft.icons.SAVE_ALT,
+                        icon_color=ft.colors.AMBER,
+                        tooltip="Salvar resultado",
+                        on_click=salvar,
+                        disabled=finalizada,
+                    ),
+                    ft.Container(
+                        content=ft.Text("✔", size=12, color=ft.colors.GREEN_300),
+                        visible=finalizada,
+                    ),
+                ], alignment=ft.MainAxisAlignment.CENTER, spacing=10),
+                padding=ft.padding.symmetric(horizontal=16, vertical=12),
+                bgcolor=ft.colors.WHITE10,
+                border_radius=10,
+            )
+
+        for p in partidas:
+            cards.controls.append(build_card(p))
+
+        nav = ft.Row([
+            ft.IconButton(
+                icon=ft.icons.ARROW_BACK_IOS,
+                on_click=lambda _: ir(self.rodada - 1),
+                disabled=self.rodada <= 1,
+                icon_color=ft.colors.AMBER,
+            ),
+            ft.Text(f"Rodada {self.rodada} / {total}", size=16, weight="bold"),
+            ft.IconButton(
+                icon=ft.icons.ARROW_FORWARD_IOS,
+                on_click=lambda _: ir(self.rodada + 1),
+                disabled=self.rodada >= total,
+                icon_color=ft.colors.AMBER,
+            ),
+        ], alignment=ft.MainAxisAlignment.CENTER)
+
+        return ft.Column([
+            ft.Row([
+                ft.IconButton(
+                    icon=ft.icons.ARROW_BACK,
+                    icon_color=ft.colors.WHITE70,
+                    tooltip="Voltar",
+                    on_click=lambda _: self.router.navigate("partidas"),
+                ),
+                ft.Text("Admin — Lançar Resultados",
+                        size=20, weight="bold", color=ft.colors.AMBER),
+            ]),
+            ft.Divider(color=ft.colors.WHITE10),
+            nav,
+            cards,
+            status,
+        ], spacing=12, expand=True, scroll=ft.ScrollMode.ADAPTIVE)

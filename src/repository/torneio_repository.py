@@ -1,5 +1,5 @@
-from database.connection_factory import ConnectionFactory
-import model.Torneio as Torneio
+from src.database.connection_factory import ConnectionFactory
+from src.model import Torneio as Torneio
 class TorneioRepository:
 
 

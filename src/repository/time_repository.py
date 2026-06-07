@@ -1,5 +1,5 @@
-from database.connection_factory import ConnectionFactory
-from model.Time import Time
+from src.database.connection_factory import ConnectionFactory
+from src.model.Time import Time
 class TimeRepository:
 
     @classmethod

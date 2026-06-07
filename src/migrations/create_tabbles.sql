@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS Torneio_Admin CASCADE;
 DROP TABLE IF EXISTS Admin CASCADE;
 DROP TABLE IF EXISTS Estatistica_Partida CASCADE; -- Tabela que morreu no novo diagrama
 DROP TABLE IF EXISTS Partidas CASCADE;
+DROP TABLE IF EXISTS Torneio_Time CASCADE;
 DROP TABLE IF EXISTS Jogador CASCADE;
 DROP TABLE IF EXISTS Time CASCADE;
 DROP TABLE IF EXISTS Torneio CASCADE;
@@ -39,7 +40,18 @@ CREATE TABLE Time (
     Escudo VARCHAR(255)
 );
 
---- 5. Tabela: JOGADOR
+--- 5. Tabela: TORNEIO_TIME (Relacionamento N:N — times inscritos em cada torneio)
+CREATE TABLE Torneio_Time (
+    ID_Torneio INT NOT NULL,
+    ID_Time    INT NOT NULL,
+    PRIMARY KEY (ID_Torneio, ID_Time),
+    CONSTRAINT FK_TorneioTime_Torneio FOREIGN KEY (ID_Torneio)
+        REFERENCES Torneio(ID_Torneio) ON DELETE CASCADE,
+    CONSTRAINT FK_TorneioTime_Time FOREIGN KEY (ID_Time)
+        REFERENCES Time(ID_Time) ON DELETE CASCADE
+);
+
+--- 6. Tabela: JOGADOR
 CREATE TABLE Jogador (
     ID_Jogador SERIAL PRIMARY KEY,
     CPF VARCHAR(11) NOT NULL UNIQUE,
@@ -53,13 +65,15 @@ CREATE TABLE Jogador (
 --- 6. Tabela: PARTIDAS (Com placar integrado conforme o novo diagrama)
 CREATE TABLE Partidas (
     ID_Partida SERIAL PRIMARY KEY,
-    Data_Hora TIMESTAMP NOT NULL,
-    Local VARCHAR(255),
     ID_Torneio INT NOT NULL,
+    Rodada INT NOT NULL,  -- Adicionado para facilitar a paginação
     ID_Time_Mandante INT NOT NULL,
-    Gols_M INT DEFAULT 0,
     ID_Time_Visitante INT NOT NULL,
+    Gols_M INT DEFAULT 0,
     Gols_V INT DEFAULT 0,
+    Finalizada BOOLEAN DEFAULT FALSE, -- Controle de estado na UI
+    Data_Hora TIMESTAMP,
+    Local VARCHAR(255),
     CONSTRAINT FK_Partidas_Torneio FOREIGN KEY (ID_Torneio)
         REFERENCES Torneio(ID_Torneio) ON DELETE CASCADE,
     CONSTRAINT FK_Partidas_Mandante FOREIGN KEY (ID_Time_Mandante)
