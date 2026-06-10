@@ -3,7 +3,7 @@ View pública: exibe rodadas e placares (somente leitura).
 View admin: lança resultados das partidas.
 """
 import flet as ft
-from src.repository import partidas_repository as partidas_repo
+from repository import partidas_repository as partidas_repo
 
 
 class RodadasView:
@@ -26,10 +26,16 @@ class RodadasView:
 
         cards = ft.Column(spacing=10)
         for p in partidas:
-            gm = p.get("gols_m") 
+            finalizada = bool(p.get("finalizada"))
+            gm = p.get("gols_m")
             gv = p.get("gols_v")
-            placar = f"{gm}  ×  {gv}" if p.get("finalizada") else "× × ×"
-            cor_placar = ft.colors.AMBER if p.get("finalizada") else ft.colors.WHITE38
+
+            if finalizada and gm is not None and gv is not None:
+                placar    = f"{gm}  ×  {gv}"
+                cor_placar = ft.colors.AMBER
+            else:
+                placar    = "vs"
+                cor_placar = ft.colors.WHITE38
 
             cards.controls.append(ft.Container(
                 content=ft.Row([

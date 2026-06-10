@@ -1,13 +1,7 @@
 import yaml
+from config.paths import CONFIG_PATH
 
-from src.config.paths import CONFIG_PATH
-
-
-with CONFIG_PATH.open("r",encoding="utf-8") as ymlfile:
-    config = yaml.safe_load(ymlfile)
-
+with CONFIG_PATH.open("r", encoding="utf-8") as f:
+    config = yaml.safe_load(f)
 
 DATABASE_CONFIG = config["database"]
-SECRET_KEY = (
-    config["chave_Fernet"]["SECRET_KEY"]
-)

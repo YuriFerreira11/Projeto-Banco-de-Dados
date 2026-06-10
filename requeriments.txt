@@ -1,5 +1,0 @@
-psycopg2
-PyYAML
-bcrypt
-cryptography
-flet==0.21.2

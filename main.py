@@ -1,13 +1,9 @@
 import flet as ft
-import sys
-import os
+from repository.torneio_repository import TorneioRepository
+from ui.router import Router
+from services.partidas_logic import PartidasLogic
 
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
-
-from src.ui.router import Router
-from src.services.partidas_logic import PartidasLogic
-
-ADMIN_SENHA = "admin123"
+ADMIN_SENHA = TorneioRepository.obter_senha_admin()
 
 
 def main(page: ft.Page):

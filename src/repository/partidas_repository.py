@@ -1,9 +1,5 @@
-"""
-Repositório: operações de Partidas.
-Schema usa: ID_Time_Mandante, ID_Time_Visitante, Gols_M, Gols_V
-A classificação é calculada automaticamente pela View_classificacao_geral.
-"""
-from src.database.connection_factory import ConnectionFactory
+
+from database.connection_factory import ConnectionFactory
 
 
 def salvar_tabela(tabela: list, id_torneio: int, map_nome_id: dict):
@@ -48,13 +44,13 @@ def partidas_da_rodada(id_torneio: int, rodada: int) -> list:
     try:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT p.ID_Partida,
-                       p.Rodada,
-                       p.Finalizada,
-                       p.Gols_M   AS Gols_Casa,
-                       p.Gols_V   AS Gols_Fora,
-                       tc.Nome    AS Casa,
-                       tf.Nome    AS Fora
+                SELECT p.ID_Partida   AS id_partida,
+                       p.Rodada       AS rodada,
+                       p.Finalizada   AS finalizada,
+                       p.Gols_M       AS gols_m,
+                       p.Gols_V       AS gols_v,
+                       tc.Nome        AS casa,
+                       tf.Nome        AS fora
                 FROM Partidas p
                 JOIN Time tc ON tc.ID_Time = p.ID_Time_Mandante
                 JOIN Time tf ON tf.ID_Time = p.ID_Time_Visitante

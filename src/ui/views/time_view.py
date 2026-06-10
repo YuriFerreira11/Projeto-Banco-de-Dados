@@ -1,5 +1,5 @@
 import flet as ft
-from src.ui.components.classificacao_tabela import criar_tabela_classificacao
+from ui.components.classificacao_tabela import criar_tabela_classificacao
 
 
 def tela_detalhes_time(time_obj, dados_classificacao, jogadores, ao_voltar):

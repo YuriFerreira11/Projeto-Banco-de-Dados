@@ -1,45 +1,75 @@
-from src.database.connection_factory import ConnectionFactory
-from src.model.Time import Time
+from types import SimpleNamespace
+from database.connection_factory import ConnectionFactory
+
+
 class TimeRepository:
 
-    @classmethod
-    def insert_time(cls, time: Time):
+    @staticmethod
+    def get_todos_times():
         conn = ConnectionFactory.get_connection()
+        if not conn: return []
         try:
-            cursor = conn.cursor()
-            sql = """
-                INSERT INTO time(nome, logo)
-                VALUES(%s, %s)
-            """
-            valores = (time.nome,time.logo)
-            cursor.execute(sql, valores)
-            conn.commit()
-            return True, "Time salvo com sucesso"
-        except Exception as e:
-            return False, f"Erro ao salvar time: {e}"
+            with conn.cursor() as cur:
+                cur.execute("SELECT ID_Time, Nome, Escudo FROM Time ORDER BY Nome")
+                return [SimpleNamespace(id_time=r[0], nome=r[1], escudo=r[2]) for r in cur.fetchall()]
         finally:
-            cursor.close()
             conn.close()
 
-    @classmethod
-    def return_name_time(cls) -> list[tuple]:
+    @staticmethod
+    def get_times_por_torneio(id_torneio):
         conn = ConnectionFactory.get_connection()
+        if not conn: return []
         try:
-            cursor = conn.cursor()
-            cursor.execute('SELECT t.nome FROM time t')
-            return [row[0] for row in cursor.fetchall()]
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT t.ID_Time, t.Nome, t.Escudo
+                    FROM Time t
+                    JOIN Torneio_Time tt ON tt.ID_Time = t.ID_Time
+                    WHERE tt.ID_Torneio = %s
+                    ORDER BY t.Nome
+                """, (id_torneio,))
+                return [SimpleNamespace(id_time=r[0], nome=r[1], escudo=r[2]) for r in cur.fetchall()]
         finally:
-            cursor.close()
             conn.close()
-    def remover_time(time: Time):
+
+    @staticmethod
+    def get_detalhes_temporada(nome_time):
         conn = ConnectionFactory.get_connection()
+        if not conn:
+            return SimpleNamespace(posicao="-", pontos=0, vitorias=0, empates=0,
+                                   derrotas=0, gf=0, gs=0, saldo_gols=0)
         try:
-            cursor = conn.cursor()
-            cursor.execute('DELETE FROM time WHERE nome = %s', (time.nome,))
-            conn.commit()
-            return True, "Time removido com sucesso"
-        except Exception as e:
-            return False, f"Erro ao remover time: {e}"
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT posicao, pontos, vitorias, empates, derrotas, gf, gs, saldo_gols
+                    FROM View_classificacao_geral WHERE nome_time = %s
+                    LIMIT 1
+                """, (nome_time,))
+                row = cur.fetchone()
+                if row:
+                    return SimpleNamespace(posicao=row[0], pontos=row[1], vitorias=row[2],
+                                           empates=row[3], derrotas=row[4], gf=row[5],
+                                           gs=row[6], saldo_gols=row[7])
+                return SimpleNamespace(posicao="-", pontos=0, vitorias=0, empates=0,
+                                       derrotas=0, gf=0, gs=0, saldo_gols=0)
         finally:
-            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def criar_time(nome, escudo):
+        conn = ConnectionFactory.get_connection()
+        if not conn: return None
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO Time (Nome, Escudo) VALUES (%s, %s) RETURNING ID_Time",
+                    (nome, escudo or None)
+                )
+                id_time = cur.fetchone()[0]
+            conn.commit()
+            return id_time
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
             conn.close()
