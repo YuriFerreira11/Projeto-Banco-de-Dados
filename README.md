@@ -71,9 +71,6 @@ database:
   dbname: "nome_do_banco"
   user: "seu_usuario"
   password: "sua_senha"
-
-chave_Fernet:
-  SECRET_KEY: "SUA_SECRET_KEY"
 ```
 
 ---
