@@ -1,36 +1,37 @@
 import flet as ft
-from ui.components.time_card import criar_card_times
-from ui.views.time_view import tela_detalhes_time
-from ui.views.torneio_view import tela_detalhes_torneio
-from ui.views.classificacao_view import tela_classificacao
-from ui.views.selecao_torneio_view import tela_selecao_torneio
-from ui.views.partida_view import RodadasView, AdminRodadasView
-from ui.views.criar_torneio_view import tela_criar_torneio
-from repository.torneio_repository import TorneioRepository
-from repository.time_repository import TimeRepository
-from repository.jogador_repository import JogadorRepository
+from src.ui.views.time_view import tela_listagem_times, tela_detalhes_time
+from src.ui.views.torneio_view import tela_detalhes_torneio
+from src.ui.views.classificacao_view import tela_classificacao
+from src.ui.views.selecao_torneio_view import tela_selecao_torneio
+from src.ui.views.partida_view import RodadasView, AdminRodadasView
+from src.ui.views.criar_torneio_view import tela_criar_torneio
+from src.repository.torneio_repository import TorneioRepository
+from src.repository.time_repository import TimeRepository
+from src.repository.jogador_repository import JogadorRepository
+
+
 class Router:
     def __init__(self, content_container, page: ft.Page):
-        self.container     = content_container
-        self.page          = page
+        self.container = content_container
+        self.page = page
         self.torneio_ativo = None
-        self.botao_trocar  = None
+        self.botao_trocar = None
         self._rodada_atual = 1
 
         self.routes = {
             "selecao_torneio": self.show_selecao,
-            "classificacao":   self.show_classificacao,
-            "partidas":        self.show_partidas,
-            "times":           self.show_times,
+            "classificacao": self.show_classificacao,
+            "partidas": self.show_partidas,
+            "times": self.show_times,
         }
 
     def _configurar_navbar(self):
         self.page.navigation_bar = ft.NavigationBar(
             selected_index=0,
             destinations=[
-                ft.NavigationDestination(icon=ft.icons.EMOJI_EVENTS,  label="Classificação"),
+                ft.NavigationDestination(icon=ft.icons.EMOJI_EVENTS, label="Classificação"),
                 ft.NavigationDestination(icon=ft.icons.SPORTS_SOCCER, label="Partidas"),
-                ft.NavigationDestination(icon=ft.icons.TABLE_ROWS,    label="Times"),
+                ft.NavigationDestination(icon=ft.icons.TABLE_ROWS, label="Times"),
             ],
             on_change=lambda e: self.navigate(
                 ["classificacao", "partidas", "times"][e.control.selected_index]
@@ -90,7 +91,6 @@ class Router:
         )
         self.page.update()
 
-    # --- Rotas principais ---
     def show_selecao(self):
         return tela_selecao_torneio(
             TorneioRepository.get_torneios(),
@@ -101,7 +101,10 @@ class Router:
     def show_criar_torneio(self):
         self.container.controls.clear()
         self.container.controls.append(
-            tela_criar_torneio(ao_concluir=lambda: self.navigate("selecao_torneio"))
+            tela_criar_torneio(
+                ao_concluir=lambda: self.navigate("selecao_torneio"),
+                ao_voltar=lambda: self.navigate("selecao_torneio")
+            )
         )
         self.page.update()
 
@@ -128,15 +131,19 @@ class Router:
         ).build()
 
     def show_times(self):
-        return criar_card_times(
-            TimeRepository.get_times_por_torneio(self.torneio_ativo.id_torneio),
-            ao_clicar_no_time=self.show_time_view
+        return tela_listagem_times(
+            lista_de_times=TimeRepository.get_times_por_torneio(self.torneio_ativo.id_torneio),
+            ao_clicar_no_time=self.show_time_view,
+            ao_trocar_torneio=lambda: self.navigate("selecao_torneio"),
+            ao_gerar_tabela=lambda: self.navigate("classificacao"),
+            ao_lançar_resultados=self.show_admin_rodadas
         )
 
     def show_time_view(self, time_obj):
         self.container.controls.clear()
         jogadores = JogadorRepository.get_jogadores_por_time(time_obj.id_time)
-        stats     = TimeRepository.get_detalhes_temporada(time_obj.nome)
+        stats = TimeRepository.get_detalhes_temporada(time_obj.nome)
+
         self.container.controls.append(
             tela_detalhes_time(time_obj, stats, jogadores, lambda: self.navigate("times"))
         )

@@ -1,117 +1,213 @@
 import flet as ft
-from ui.components.classificacao_tabela import criar_tabela_classificacao
 
 
+# =========================================================================
+# 1. TELA DE LISTAGEM DE TIMES (Mantida idêntica para compatibilidade)
+# =========================================================================
+def tela_listagem_times(lista_de_times, ao_clicar_no_time, ao_trocar_torneio=None, ao_gerar_tabela=None,
+                        ao_lançar_resultados=None):
+    def tratar_hover(e):
+        if e.data == "true":
+            e.control.bgcolor = "#2C2D35"
+            e.control.border = ft.border.all(1, ft.colors.AMBER_400)
+        else:
+            e.control.bgcolor = "#1A1A1A"
+            e.control.border = ft.border.all(1, ft.colors.WHITE10)
+        e.control.update()
+
+    grid_times = ft.GridView(
+        runs_count=5,
+        child_aspect_ratio=1.0,
+        spacing=18,
+        run_spacing=18,
+        expand=True
+    )
+
+    for time in lista_de_times:
+        url_escudo = getattr(time, 'escudo', None)
+        nome_time = getattr(time, 'nome', "Time Desconhecido")
+
+        card_time = ft.Container(
+            bgcolor="#1A1A1A",
+            padding=20,
+            border_radius=16,
+            border=ft.border.all(1, ft.colors.WHITE10),
+            alignment=ft.alignment.center,
+            on_click=lambda _, t=time: ao_clicar_no_time(t),
+            on_hover=tratar_hover,
+            content=ft.Column([
+                ft.Container(
+                    content=ft.Image(
+                        src=url_escudo,
+                        width=70,
+                        height=70,
+                        fit=ft.ImageFit.CONTAIN
+                    ) if url_escudo else ft.Icon(ft.icons.SHIELD_ROUNDED, size=70, color=ft.colors.WHITE24),
+                    alignment=ft.alignment.center,
+                    expand=True
+                ),
+                ft.Container(height=5),
+                ft.Text(
+                    nome_time,
+                    size=15,
+                    weight="bold",
+                    color=ft.colors.WHITE,
+                    text_align=ft.TextAlign.CENTER,
+                    max_lines=1,
+                    overflow=ft.TextOverflow.ELLIPSIS
+                )
+            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, alignment=ft.MainAxisAlignment.CENTER)
+        )
+        grid_times.controls.append(card_time)
+
+    return ft.Container(
+        content=grid_times,
+        padding=ft.padding.all(15),
+        expand=True
+    )
+
+
+# =========================================================================
+# 2. TELA DE DETALHES DO TIME (Versão Harmonizada e Fluida)
+# =========================================================================
 def tela_detalhes_time(time_obj, dados_classificacao, jogadores, ao_voltar):
     if not dados_classificacao:
         class Struct:
-            posicao = "-";
-            pontos = 0;
-            vitorias = 0;
-            empates = 0;
-            derrotas = 0;
-            gf = 0;
-            gs = 0;
+            posicao = "-"
+            pontos = 0
+            vitorias = 0
+            empates = 0
+            derrotas = 0
+            gf = 0
+            gs = 0
             saldo_gols = 0
 
         dados_classificacao = Struct()
 
-    # Função dos quadrinhos (agora usa expand=True para se autoajustar no espaço da linha)
-    def criar_card_mini(label, valor, cor_fundo, icone, cor_texto=ft.colors.WHITE70, cor_valor=ft.colors.WHITE):
-        return ft.Container(
-            content=ft.Column([
-                ft.Icon(icone, size=12, color=cor_texto),
-                ft.Text(label, size=9, weight="bold", color=cor_texto),
-                ft.Text(f"{valor}", size=16, weight="bold", color=cor_valor),
-            ], horizontal_alignment="center", spacing=0),
-            bgcolor=cor_fundo,
-            padding=8,
-            border_radius=8,
-            expand=True  # Divide o espaço igualmente dentro do Row pai
-        )
+    # --- 1. BARRA DE CLASSIFICAÇÃO COM DISTRIBUIÇÃO HARMONIOSA ---
+    # Usando SPACE_EVENLY para preencher proporcionalmente toda a largura disponível
+    linha_classificacao = ft.Container(
+        content=ft.Row([
+            ft.Text(f"POSIÇÃO: {dados_classificacao.posicao}º", weight="w900", color=ft.colors.AMBER_400, size=13),
+            ft.Text("•", color=ft.colors.WHITE10, size=14),
+            ft.Text(f"PONTOS: {dados_classificacao.pontos}", weight="bold", color=ft.colors.WHITE, size=13),
+            ft.Text("•", color=ft.colors.WHITE10, size=14),
+            ft.Text(f"VITÓRIAS: {dados_classificacao.vitorias}", color=ft.colors.GREEN_400, size=13, weight="medium"),
+            ft.Text("•", color=ft.colors.WHITE10, size=14),
+            ft.Text(f"EMPATES: {dados_classificacao.empates}", color=ft.colors.GREY_400, size=13, weight="medium"),
+            ft.Text("•", color=ft.colors.WHITE10, size=14),
+            ft.Text(f"DERROTAS: {dados_classificacao.derrotas}", color=ft.colors.RED_400, size=13, weight="medium"),
+            ft.Text("•", color=ft.colors.WHITE10, size=14),
+            ft.Text(f"SALDO DE GOLS: {dados_classificacao.saldo_gols}", color=ft.colors.PURPLE_400, size=13,
+                    weight="medium"),
+        ], alignment=ft.MainAxisAlignment.SPACE_EVENLY, vertical_alignment=ft.CrossAxisAlignment.CENTER),
+        bgcolor="#1A1A1A",
+        padding=16,
+        border_radius=12,
+        border=ft.border.all(1, ft.colors.WHITE10),
+    )
 
-    # --- LADO ESQUERDO: ESTATÍSTICAS ---
-    coluna_estatisticas = ft.Column([
-        # Linha 1: Posição e Pontos
-        ft.Row([
-            ft.Container(
-                content=ft.Column([
-                    ft.Text("POSIÇÃO", size=12, weight="bold", color=ft.colors.BLACK54),
-                    ft.Text(f"{dados_classificacao.posicao}º", size=32, weight="bold", color=ft.colors.BLACK),
-                ], horizontal_alignment="center"),
-                bgcolor=ft.colors.WHITE,
-                padding=12,
-                border_radius=12,
-                expand=True
-            ),
-            ft.Container(
-                content=ft.Column([
-                    ft.Text("PONTOS", size=12, weight="bold", color=ft.colors.WHITE70),
-                    ft.Text(f"{dados_classificacao.pontos}", size=32, weight="bold", color=ft.colors.WHITE),
-                ], horizontal_alignment="center"),
-                bgcolor="#1E1E1E",
-                padding=12,
-                border_radius=12,
-                expand=True
-            ),
-        ], spacing=10),
+    # --- 2. TABELA DE ELENCO PERSONALIZADA (LARGURA TOTAL FLUIDA) ---
+    # Criamos um cabeçalho customizado elegante que se expande por igual
+    tabela_conteudo = ft.Column(spacing=0)
 
-        ft.Container(height=10),
-
-        # Linha 2: V / E / D
-        ft.Row([
-            criar_card_mini("VITÓRIAS", dados_classificacao.vitorias, "#2C2C2C", ft.icons.CHECK_CIRCLE),
-            criar_card_mini("EMPATES", dados_classificacao.empates, "#2C2C2C", ft.icons.REMOVE_CIRCLE),
-            criar_card_mini("DERROTAS", dados_classificacao.derrotas, "#2C2C2C", ft.icons.CANCEL),
-        ], spacing=10),
-
-        ft.Container(height=10),
-
-        # Linha 3: Gols
-        ft.Row([
-            criar_card_mini("GOLS PRÓ", dados_classificacao.gf, "#3D3D3D", ft.icons.ARROW_UPWARD),
-            criar_card_mini("GOLS CONTRA", dados_classificacao.gs, "#3D3D3D", ft.icons.ARROW_DOWNWARD),
-            criar_card_mini("SALDO GOLS", dados_classificacao.saldo_gols, "#3D3D3D", ft.icons.SWAP_VERT),
-        ], spacing=10),
-    ])
-
-    # --- LADO DIREITO: ELENCO ---
-    coluna_elenco = ft.Column([
-        ft.Row([
-            ft.Icon(ft.icons.GROUPS, size=24),
-            ft.Text("Elenco Atual", size=22, weight="bold"),
-        ], alignment=ft.MainAxisAlignment.CENTER, spacing=10),
-
-        ft.Container(height=10),
-
-        # A tabela de dados
+    # Linha do Cabeçalho da Tabela
+    tabela_conteudo.controls.append(
         ft.Container(
-            content=criar_tabela_classificacao(jogadores),
-            alignment=ft.alignment.center
+            content=ft.Row([
+                ft.Text("JOGADOR", color=ft.colors.AMBER_400, weight="bold", size=12, expand=3),
+                ft.Text("POSIÇÃO", color=ft.colors.AMBER_400, weight="bold", size=12, expand=2),
+            ], alignment=ft.MainAxisAlignment.START),
+            padding=ft.padding.symmetric(horizontal=20, vertical=12),
+            bgcolor="#1C1D24",
+            border_radius=ft.border_radius.only(top_left=12, top_right=12)
         )
-    ], horizontal_alignment="center")
+    )
 
-    # --- MONTAGEM DA TELA FINAL ---
-    return ft.Column([
-        # Cabeçalho (Intacto, ocupando toda a largura)
+    # Adicionando as linhas dos jogadores com efeito zebrado sutil
+    if not jogadores:
+        tabela_conteudo.controls.append(
+            ft.Container(
+                content=ft.Text("Nenhum jogador cadastrado neste elenco.", color=ft.colors.WHITE38, size=14),
+                padding=20,
+                alignment=ft.alignment.center
+            )
+        )
+    else:
+        for idx, j in enumerate(jogadores):
+            nome_jogador = getattr(j, 'nome', 'Sem nome')
+            posicao_jogador = getattr(j, 'posicao', getattr(j, 'funcao', 'Não informada'))
+
+            # Cor de fundo alternada para leitura agradável
+            bg_row = "#05FFFFFF" if idx % 2 == 0 else ft.colors.TRANSPARENT
+
+            tabela_conteudo.controls.append(
+                ft.Container(
+                    content=ft.Row([
+                        ft.Text(nome_jogador, color=ft.colors.WHITE, weight="medium", size=14, expand=3),
+                        ft.Text(posicao_jogador, color=ft.colors.WHITE70, size=14, expand=2),
+                    ], alignment=ft.MainAxisAlignment.START),
+                    padding=ft.padding.symmetric(horizontal=20, vertical=14),
+                    bgcolor=bg_row,
+                    border=ft.border.only(bottom=ft.border.BorderSide(1, ft.colors.WHITE10 if idx < len(
+                        jogadores) - 1 else ft.colors.TRANSPARENT))
+                )
+            )
+
+    # Painel estruturado do Elenco Completo
+    bloco_elenco = ft.Column([
         ft.Row([
-            ft.IconButton(ft.icons.ARROW_BACK, on_click=lambda _: ao_voltar()),
-            ft.Image(
-                src=time_obj.escudo if time_obj.escudo else ft.icons.IMAGE_NOT_SUPPORTED,
-                width=60,
-                height=60,
-                fit=ft.ImageFit.CONTAIN
-            ),
-            ft.Text(f"{time_obj.nome.upper()}", size=32, weight="bold")
-        ], alignment=ft.MainAxisAlignment.START, spacing=20),
+            ft.Icon(ft.icons.GROUPS_ROUNDED, size=20, color=ft.colors.WHITE54),
+            ft.Text("Elenco Atual", size=18, weight="bold", color=ft.colors.WHITE),
+        ], alignment=ft.MainAxisAlignment.START, spacing=8),
 
-        ft.Divider(height=20),
+        ft.Container(height=6),
 
-        # Divisão da Tela: 50% Stats | 50% Elenco
-        ft.ResponsiveRow([
-            # No desktop (md), cada um ocupa 6 de 12 espaços (50%). No mobile (sm), ocupam 12 (100%).
-            ft.Container(content=coluna_estatisticas, col={"sm": 12, "md": 6}, padding=ft.padding.only(right=10)),
-            ft.Container(content=coluna_elenco, col={"sm": 12, "md": 6}, padding=ft.padding.only(left=10)),
-        ], vertical_alignment=ft.CrossAxisAlignment.START)
+        ft.Container(
+            content=tabela_conteudo,
+            bgcolor="#141414",
+            border_radius=12,
+            border=ft.border.all(1, ft.colors.WHITE10),
+            clip_behavior=ft.ClipBehavior.ANTI_ALIAS  # Garante que o efeito zebrado respeite as bordas arredondadas
+        )
+    ], horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
 
-    ], scroll=ft.ScrollMode.ADAPTIVE, expand=True)
+    # --- 3. ESTRUTURAÇÃO FINAL DA VIEW ---
+    url_escudo = getattr(time_obj, 'escudo', None)
+    nome_time = getattr(time_obj, 'nome', "TIME")
+
+    return ft.Container(
+        content=ft.Column([
+            # Cabeçalho do Time
+            ft.Row([
+                ft.IconButton(
+                    icon=ft.icons.ARROW_BACK_ROUNDED,
+                    icon_color=ft.colors.WHITE70,
+                    on_click=lambda _: ao_voltar()
+                ),
+                ft.Container(
+                    content=ft.Image(
+                        src=url_escudo,
+                        width=45,
+                        height=45,
+                        fit=ft.ImageFit.CONTAIN,
+                    ) if url_escudo else ft.Icon(ft.icons.SHIELD, size=45, color=ft.colors.WHITE24),
+                    margin=ft.margin.only(left=5, right=5)
+                ),
+                ft.Text(f"{nome_time.upper()}", size=26, weight="w900", color=ft.colors.WHITE)
+            ], alignment=ft.MainAxisAlignment.START, vertical_alignment=ft.CrossAxisAlignment.CENTER, spacing=10),
+
+            ft.Divider(height=20, color=ft.colors.WHITE10),
+
+            # Estatísticas do Painel
+            linha_classificacao,
+
+            ft.Container(height=15),
+
+            # Elenco Harmonizado ocupando toda a área inferior de forma limpa
+            bloco_elenco
+
+        ], scroll=ft.ScrollMode.ADAPTIVE, expand=True),
+        padding=15,
+        expand=True
+    )
