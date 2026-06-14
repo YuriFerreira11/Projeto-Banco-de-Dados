@@ -59,15 +59,15 @@ DO $$
 DECLARE t_id INT;
 BEGIN
     FOR t_id IN 1..20 LOOP
-        INSERT INTO Jogador (CPF, Nome, Funcao, ID_Time) VALUES
-        (LPAD(CAST(t_id * 100 + 1 AS TEXT), 11, '0'), 'Capitão ' || t_id, 'Zagueiro', t_id),
-        (LPAD(CAST(t_id * 100 + 2 AS TEXT), 11, '0'), 'Craque '  || t_id, 'Atacante', t_id);
+        INSERT INTO Jogador (Nome, Funcao, ID_Time) VALUES
+        ('Capitão ' || t_id, 'Zagueiro', t_id),
+        ('Craque '  || t_id, 'Atacante', t_id);
     END LOOP;
 END $$;
 
 -- Jogadores Série B
-INSERT INTO Jogador (CPF, Nome, Funcao, ID_Time) VALUES
-('21000000001', 'Diego Souza', 'Atacante', 21),
-('22000000001', 'Vina',        'Meia',     22),
-('23000000001', 'Tadeu',       'Goleiro',  23),
-('24000000001', 'Vagner Love', 'Atacante', 24);
+INSERT INTO Jogador (Nome, Funcao, ID_Time) VALUES
+('Diego Souza', 'Atacante', 21),
+('Vina',        'Meia',     22),
+('Tadeu',       'Goleiro',  23),
+('Vagner Love', 'Atacante', 24);

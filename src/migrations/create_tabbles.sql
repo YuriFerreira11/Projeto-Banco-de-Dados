@@ -54,7 +54,6 @@ CREATE TABLE Torneio_Time (
 --- 6. Tabela: JOGADOR
 CREATE TABLE Jogador (
     ID_Jogador SERIAL PRIMARY KEY,
-    CPF VARCHAR(11) NOT NULL UNIQUE,
     Nome VARCHAR(255) NOT NULL,
     Funcao VARCHAR(50),
     ID_Time INT,
