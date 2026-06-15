@@ -1,5 +1,5 @@
 import psycopg2
-from config.settings import DATABASE_CONFIG
+from src.config.settings import DATABASE_CONFIG
 
 
 class ConnectionFactory:

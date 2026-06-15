@@ -1,7 +1,7 @@
 import flet as ft
-from repository.torneio_repository import TorneioRepository
-from ui.router import Router
-from services.partidas_logic import PartidasLogic
+from src.repository.torneio_repository import TorneioRepository
+from src.ui.router import Router
+from src.services.partidas_logic import PartidasLogic
 
 ADMIN_SENHA = TorneioRepository.obter_senha_admin()
 

@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from database.connection_factory import ConnectionFactory
+from src.database.connection_factory import ConnectionFactory
 
 
 class TorneioRepository:

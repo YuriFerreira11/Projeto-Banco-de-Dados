@@ -1,14 +1,8 @@
-"""
-View pública: exibe rodadas e placares (somente leitura).
-View admin: lança resultados das partidas.
-"""
 import flet as ft
-from repository import partidas_repository as partidas_repo
+from src.repository import partidas_repository as partidas_repo
 
 
 class RodadasView:
-    """Visualização pública — sem edição."""
-
     def __init__(self, router, page: ft.Page,
                  id_torneio: int = None, rodada: int = 1, **kwargs):
         self.router     = router

@@ -1,7 +1,7 @@
 import flet as ft
-from repository.torneio_repository import TorneioRepository
-from repository.time_repository import TimeRepository
-from repository.jogador_repository import JogadorRepository
+from src.repository.torneio_repository import TorneioRepository
+from src.repository.time_repository import TimeRepository
+from src.repository.jogador_repository import JogadorRepository
 
 
 def tela_criar_torneio(ao_concluir, ao_voltar):

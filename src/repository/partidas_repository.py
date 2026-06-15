@@ -1,5 +1,4 @@
-
-from database.connection_factory import ConnectionFactory
+from src.database.connection_factory import ConnectionFactory
 
 
 def salvar_tabela(tabela: list, id_torneio: int, map_nome_id: dict):
