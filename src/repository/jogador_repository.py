@@ -13,7 +13,7 @@ class JogadorRepository:
             with conn.cursor() as cur:
                 # Puxa 3 colunas: índice 0, 1 e 2
                 cur.execute(
-                    "SELECT ID_Jogador, Nome, Funcao FROM Jogador WHERE ID_Time = %s",
+                    "SELECT ID_Jogador, Nome, Funcao FROM Jogador WHERE ID_Time = %s ORDER BY Funcao ASC, Nome ASC",
                     (id_time,)
                 )
                 # CORRIGIDO: Mapeamento direto sem a coluna CPF para evitar IndexError
@@ -45,26 +45,34 @@ class JogadorRepository:
             conn.close()
 
     @staticmethod
-    def gerar_jogadores_para_time(id_time, nome_time):
-        """Gera 11 jogadores automaticamente para um time."""
-        posicoes = ["Goleiro", "Zagueiro", "Zagueiro", "Zagueiro",
-                    "Lateral", "Lateral", "Volante", "Meia",
-                    "Meia", "Atacante", "Atacante"]
-        nomes_base = ["Carlos", "Bruno", "Diego", "Felipe", "Gabriel",
-                      "Henrique", "Igor", "João", "Lucas", "Mateus", "Rafael"]
-
+    def atualizar_jogador(id_jogador, nome, funcao):
         conn = ConnectionFactory.get_connection()
         if not conn:
-            return
+            return False
         try:
             with conn.cursor() as cur:
-                for pos, nome in zip(posicoes, nomes_base):
-                    # CORRIGIDO: Removida a geração e inserção do CPF falso
-                    cur.execute(
-                        "INSERT INTO Jogador (Nome, Funcao, ID_Time) VALUES (%s, %s, %s)",
-                        (f"{nome} ({nome_time[:8]})", pos, id_time)
-                    )
+                cur.execute(
+                    "UPDATE Jogador SET Nome=%s, Funcao=%s WHERE ID_Jogador=%s",
+                    (nome, funcao, id_jogador)
+                )
             conn.commit()
+            return True
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            conn.close()
+
+    @staticmethod
+    def deletar_jogador(id_jogador):
+        conn = ConnectionFactory.get_connection()
+        if not conn:
+            return False
+        try:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM Jogador WHERE ID_Jogador=%s", (id_jogador,))
+            conn.commit()
+            return True
         except Exception as e:
             conn.rollback()
             raise e

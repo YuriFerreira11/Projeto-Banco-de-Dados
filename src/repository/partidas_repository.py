@@ -1,4 +1,3 @@
-
 from database.connection_factory import ConnectionFactory
 
 
@@ -44,13 +43,15 @@ def partidas_da_rodada(id_torneio: int, rodada: int) -> list:
     try:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT p.ID_Partida   AS id_partida,
-                       p.Rodada       AS rodada,
-                       p.Finalizada   AS finalizada,
-                       p.Gols_M       AS gols_m,
-                       p.Gols_V       AS gols_v,
-                       tc.Nome        AS casa,
-                       tf.Nome        AS fora
+                SELECT  p.ID_Partida   AS id_partida,
+                        p.Rodada       AS rodada,
+                        p.Finalizada   AS finalizada,
+                        p.Gols_M       AS gols_m,
+                        p.Gols_V       AS gols_v,
+                        tc.Nome        AS casa,
+                        tc.escudo AS escudo_casa,  -- Certifique-se de renomear com AS
+                        tf.nome AS fora,
+                        tf.escudo AS escudo_fora   -- Certifique-se de renomear com AS
                 FROM Partidas p
                 JOIN Time tc ON tc.ID_Time = p.ID_Time_Mandante
                 JOIN Time tf ON tf.ID_Time = p.ID_Time_Visitante

@@ -1,19 +1,10 @@
 import flet as ft
 
 
-def tela_classificacao(dados_classificacao, ao_clicar_torneio):
-    # Header ajustado e centralizado
+def tela_classificacao(dados_classificacao, ao_clicar_torneio=None):
+    # Header simplificado: apenas o título
     header = ft.Column([
         ft.Text("TABELA DE CLASSIFICAÇÃO", size=28, weight="w900", text_align=ft.TextAlign.CENTER),
-        ft.Text("Dados extraídos diretamente do banco", size=14, color=ft.colors.WHITE54,
-                text_align=ft.TextAlign.CENTER),
-        ft.Container(height=10),
-        ft.ElevatedButton(
-            "Ver Info do Torneio",
-            icon=ft.icons.INFO_OUTLINE,
-            style=ft.ButtonStyle(color=ft.colors.WHITE70),
-            on_click=lambda _: ao_clicar_torneio(),
-        )
     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER)
 
     # Helper alterado para alinhar à ESQUERDA com um leve respiro (padding)

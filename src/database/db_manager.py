@@ -124,18 +124,18 @@ def inspecionar_banco():
                     nome_obj = obj[0]
                     # Query avançada para buscar colunas e seus tipos de restrição (PK/FK)
                     cursor.execute(f"""
-                        SELECT 
+                        SELECT
                             cols.column_name,
-                            CASE 
+                            CASE
                                 WHEN tc.constraint_type = 'PRIMARY KEY' THEN 'PK'
                                 WHEN tc.constraint_type = 'FOREIGN KEY' THEN 'FK'
                                 ELSE ''
                             END as constraint_label
                         FROM information_schema.columns cols
-                        LEFT JOIN information_schema.key_column_usage kcu 
-                            ON cols.column_name = kcu.column_name 
+                        LEFT JOIN information_schema.key_column_usage kcu
+                            ON cols.column_name = kcu.column_name
                             AND cols.table_name = kcu.table_name
-                        LEFT JOIN information_schema.table_constraints tc 
+                        LEFT JOIN information_schema.table_constraints tc
                             ON kcu.constraint_name = tc.constraint_name
                         WHERE cols.table_name = '{nome_obj}'
                         ORDER BY cols.ordinal_position;
