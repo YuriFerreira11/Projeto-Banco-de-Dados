@@ -1,6 +1,6 @@
 import random
-from repository import partidas_repository as partidas_repo
-from repository.time_repository import TimeRepository
+from src.repository import partidas_repository as partidas_repo
+from src.repository.time_repository import TimeRepository
 
 
 class PartidasLogic:
