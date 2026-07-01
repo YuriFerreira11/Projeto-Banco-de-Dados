@@ -13,8 +13,6 @@ from src.ui.views.partida_view import RodadasView
 
 FUNCOES_JOGADOR = ["Goleiro", "Zagueiro", "Lateral", "Volante", "Meia", "Atacante"]
 
-# Rotas que só fazem sentido com um torneio selecionado.
-# Se o usuário cair aqui sem torneio_ativo, o router redireciona pra seleção.
 ROTAS_REQUEREM_TORNEIO = {"times", "time_detalhe", "partidas", "classificacao", "torneio"}
 
 
@@ -216,10 +214,8 @@ class Router:
                 )
             )
 
-        # ---- FUNÇÃO PARA ABRIR O HISTÓRICO DE PARTIDAS EM MODAL CENTRALIZADO CORRIGIDA ----
         def abrir_historico(e):
             partidas = TimeRepository.get_historico_partidas(time.nome)
-
             lista_jogos = ft.ListView(expand=True, spacing=10)
 
             if not partidas:
@@ -234,7 +230,6 @@ class Router:
                     placar = f"{gm}   ×   {gv}"
 
                     linha_partida = ft.Row([
-                        # Time Mandante
                         ft.Row([
                             ft.Text(p["casa"], weight="bold"),
                             ft.Image(src=p.get("escudo_casa"), width=22, height=22,
@@ -242,11 +237,9 @@ class Router:
                             else ft.Icon(ft.icons.SHIELD, size=22, color=ft.colors.WHITE24),
                         ], alignment=ft.MainAxisAlignment.END, expand=2, tight=True),
 
-                        # Placar
                         ft.Text(placar, size=18, weight="bold", color=ft.colors.AMBER,
                                 text_align=ft.TextAlign.CENTER, expand=1),
 
-                        # Time Visitante
                         ft.Row([
                             ft.Image(src=p.get("escudo_fora"), width=22, height=22,
                                      fit=ft.ImageFit.CONTAIN) if p.get("escudo_fora")
@@ -264,7 +257,6 @@ class Router:
                         )
                     )
 
-            # Criando o AlertDialog com as referências certas
             modal_historico = ft.AlertDialog(
                 content=ft.Container(
                     content=ft.Column([
@@ -283,8 +275,8 @@ class Router:
                         )
                     ], tight=True),
                     padding=10,
-                    width=550,  # Largura ideal alinhada com o design das rodadas
-                    height=450,  # Altura máxima controlada
+                    width=550,
+                    height=450,
                 ),
             )
 
@@ -292,7 +284,6 @@ class Router:
                 modal_historico.open = False
                 self.page.update()
 
-            # Adiciona e abre o componente correto
             self.page.overlay.append(modal_historico)
             modal_historico.open = True
             self.page.update()
@@ -374,7 +365,6 @@ class Router:
             spacing=10,
         )
 
-    # ---- dialogs de edição de elenco (só chamados em modo_admin) ----
     def _abrir_dialog_jogador(self, jogador):
         eh_edicao = jogador is not None
 
@@ -397,7 +387,7 @@ class Router:
         def salvar(e):
             nome = campo_nome.value.strip()
             if not nome:
-                erro.value = "⚠️ Informe o nome do jogador."
+                erro.value = "Informe o nome do jogador."
                 erro.update()
                 return
             try:
@@ -409,7 +399,7 @@ class Router:
                 self.page.update()
                 self.refresh_current_view()
             except Exception as ex:
-                erro.value = f"❌ Erro ao salvar: {ex}"
+                erro.value = f"Erro ao salvar: {ex}"
                 erro.update()
 
         def cancelar(e):

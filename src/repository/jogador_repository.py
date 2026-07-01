@@ -24,6 +24,7 @@ class JogadorRepository:
         finally:
             conn.close()
 
+
     @staticmethod
     def criar_jogador(nome, funcao, id_time):
         # CORRIGIDO: Removido o parâmetro 'cpf' da assinatura da função
@@ -44,6 +45,7 @@ class JogadorRepository:
         finally:
             conn.close()
 
+
     @staticmethod
     def atualizar_jogador(id_jogador, nome, funcao):
         conn = ConnectionFactory.get_connection()
@@ -62,6 +64,7 @@ class JogadorRepository:
             raise e
         finally:
             conn.close()
+
 
     @staticmethod
     def deletar_jogador(id_jogador):

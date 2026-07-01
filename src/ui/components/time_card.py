@@ -7,8 +7,8 @@ def criar_card_times(lista_times, ao_clicar_no_time):
 
     grid = ft.GridView(
         expand=True,
-        runs_count=5,  # Quantos cards por linha
-        max_extent=200,  # Largura máxima de cada card
+        runs_count=5,
+        max_extent=200,
         child_aspect_ratio=1.0,
         spacing=20,
         run_spacing=20,
@@ -24,8 +24,8 @@ def criar_card_times(lista_times, ao_clicar_no_time):
                 bgcolor=ft.colors.SURFACE_VARIANT,
                 border_radius=15,
                 padding=10,
-                on_click=lambda e, t=time: ao_clicar_no_time(t),  # Passa o objeto time todo
-                ink=True,  # Efeito visual de clique
+                on_click=lambda e, t=time: ao_clicar_no_time(t),
+                ink=True,
             )
         )
 

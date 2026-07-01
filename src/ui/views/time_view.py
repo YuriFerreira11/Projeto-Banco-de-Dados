@@ -2,10 +2,7 @@ import flet as ft
 
 
 def time_view(page: ft.Page, ao_clicar_no_time, lista_times):
-    """
-    Renderiza a interface com os cards contendo todos os times cadastrados no banco.
-    """
-
+    # Grid dos Times
     grid_times = ft.GridView(
         expand=True,
         runs_count=3,
@@ -46,8 +43,6 @@ def time_view(page: ft.Page, ao_clicar_no_time, lista_times):
                     padding=10,
                     animate_scale=ft.animation.Animation(300, ft.AnimationCurve.EASE_OUT),
                 ),
-                # Linha 36 corrigida: Mapeamento explícito via argumento padrão do lambda (t=time)
-                # No Flet 0.21.2 o GestureDetector usa on_tap, não on_click
                 on_tap=lambda _, t=time: ao_clicar_no_time(t),
             )
         )

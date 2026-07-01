@@ -40,7 +40,7 @@ def main(page: ft.Page):
                 atualizar_visual_botao_admin()
                 router.refresh_current_view()
         else:
-            erro_senha.value = "❌ Senha incorreta."
+            erro_senha.value = "Senha incorreta."
             senha_field.value = ""
             page.update()
 
@@ -78,12 +78,11 @@ def main(page: ft.Page):
         try:
             total = PartidasLogic.gerar_e_salvar(router.torneio_ativo.id_torneio)
             page.show_snack_bar(
-                ft.SnackBar(ft.Text(f"✅ {total} jogos criados com sucesso!"), bgcolor=ft.colors.GREEN_700))
+                ft.SnackBar(ft.Text(f"{total} jogos criados com sucesso!"), bgcolor=ft.colors.GREEN_700))
             router.navigate("partidas")
         except Exception as ex:
             page.show_snack_bar(ft.SnackBar(ft.Text(f"Erro: {str(ex)}"), bgcolor=ft.colors.RED_700))
 
-    # --- Gerenciamento Interativo do Botão Admin ---
     def tratar_click_admin(e):
         if router.modo_admin:
             router.modo_admin = False
@@ -94,27 +93,24 @@ def main(page: ft.Page):
 
     def atualizar_visual_botao_admin():
         if router.modo_admin:
-            # Altera o texto e cores do botão de ativação
             btn_modo_admin.content.controls[0].value = "MODO ADMIN: ATIVO"
             btn_modo_admin.content.controls[0].color = ft.colors.AMBER
             btn_modo_admin.content.controls[1].name = ft.icons.LOCK_OPEN_ROUNDED
             btn_modo_admin.content.controls[1].color = ft.colors.AMBER
 
-            # 🟢 TORNA O BOTÃO DE GERAR TABELA VISÍVEL
             btn_admin_container.content.controls[0].visible = True
-            btn_admin_container.content.controls[1].visible = True  # Divisor "|"
+            btn_admin_container.content.controls[1].visible = True
         else:
             btn_modo_admin.content.controls[0].value = "MODO ADMIN"
             btn_modo_admin.content.controls[0].color = ft.colors.WHITE70
             btn_modo_admin.content.controls[1].name = ft.icons.LOCK_ROUNDED
             btn_modo_admin.content.controls[1].color = ft.colors.WHITE70
 
-            # 🔴 ESCONDE O BOTÃO DE GERAR TABELA
             btn_admin_container.content.controls[0].visible = False
-            btn_admin_container.content.controls[1].visible = False  # Divisor "|"
+            btn_admin_container.content.controls[1].visible = False
 
         btn_modo_admin.update()
-        btn_admin_container.update()  # Atualiza o container inteiro para aplicar as visibilidades
+        btn_admin_container.update()
 
     btn_voltar = ft.Container(
         content=ft.TextButton(
@@ -135,7 +131,6 @@ def main(page: ft.Page):
         on_click=tratar_click_admin,
     )
 
-    # Modificado para iniciar com os controles de geração ocultos (visible=False)
     btn_admin_container = ft.Container(
         content=ft.Row([
             ft.TextButton(
@@ -144,9 +139,9 @@ def main(page: ft.Page):
                     ft.Icon(ft.icons.AUTO_AWESOME, size=14, color=ft.colors.WHITE70),
                 ], tight=True),
                 on_click=lambda _: _abrir_dialog("gerar", "Digite a senha para gerar a tabela de jogos do torneio."),
-                visible=False  # 👈 Começa escondido
+                visible=False
             ),
-            ft.Text("|", color=ft.colors.WHITE24, visible=False),  # 👈 Começa escondido
+            ft.Text("|", color=ft.colors.WHITE24, visible=False),
             btn_modo_admin,
         ], tight=True),
         alignment=ft.alignment.center_right,
@@ -176,9 +171,7 @@ def main(page: ft.Page):
         ft.Container(content=main_content, expand=True, padding=20)
     )
 
-    # Executa uma vez no início para garantir que o layout inicial respeite o estado padrão (Desativado)
     atualizar_visual_botao_admin()
-
     router.navigate("selecao_torneio")
 
 

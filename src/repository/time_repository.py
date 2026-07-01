@@ -32,6 +32,7 @@ class TimeRepository:
         finally:
             conn.close()
 
+
     @staticmethod
     def get_detalhes_temporada(nome_time):
         conn = ConnectionFactory.get_connection()
@@ -55,6 +56,7 @@ class TimeRepository:
         finally:
             conn.close()
 
+
     @staticmethod
     def criar_time(nome, escudo):
         conn = ConnectionFactory.get_connection()
@@ -73,6 +75,7 @@ class TimeRepository:
             raise e
         finally:
             conn.close()
+
 
     @staticmethod
     def get_historico_partidas(nome_time):

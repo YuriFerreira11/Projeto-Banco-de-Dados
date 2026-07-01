@@ -32,6 +32,7 @@ class TorneioRepository:
         finally:
             conn.close()
 
+
     @staticmethod
     def criar_torneio(nome, data_inicio, data_fim):
         conn = ConnectionFactory.get_connection()
@@ -51,6 +52,7 @@ class TorneioRepository:
         finally:
             conn.close()
 
+
     @staticmethod
     def vincular_time(id_torneio, id_time):
         conn = ConnectionFactory.get_connection()
@@ -67,6 +69,8 @@ class TorneioRepository:
             raise e
         finally:
             conn.close()
+
+
     @staticmethod
     def obter_senha_admin():
         conn = ConnectionFactory.get_connection()

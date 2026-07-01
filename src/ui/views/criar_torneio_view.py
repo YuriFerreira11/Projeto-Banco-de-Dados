@@ -9,22 +9,22 @@ def tela_criar_torneio(ao_concluir, ao_voltar):
     LARGURA_FORM = 750
 
     campo_nome = ft.TextField(label="Nome do Torneio", width=LARGURA_FORM, border_color=ft.colors.AMBER)
-
-    # Reduzimos um pouco a largura dos inputs para caber o botão do calendário ao lado
     campo_inicio = ft.TextField(label="Data Início (AAAA-MM-DD)", width=315, border_color=ft.colors.WHITE24)
     campo_fim = ft.TextField(label="Data Fim (AAAA-MM-DD)", width=315, border_color=ft.colors.WHITE24)
 
-    # --- Configuração dos seletores visuais (Calendários) ---
+
     def mudar_data_inicio(e):
         if picker_inicio.value:
             # Formata o objeto date nativo em string AAAA-MM-DD
             campo_inicio.value = picker_inicio.value.strftime("%Y-%m-%d")
             campo_inicio.update()
 
+
     def mudar_data_fim(e):
         if picker_fim.value:
             campo_fim.value = picker_fim.value.strftime("%Y-%m-%d")
             campo_fim.update()
+
 
     picker_inicio = ft.DatePicker(
         on_change=mudar_data_inicio,
@@ -35,7 +35,6 @@ def tela_criar_torneio(ao_concluir, ao_voltar):
         help_text="Selecione a data de término do torneio"
     )
 
-    # --- Nova caixinha de marcação para Auto-gerar partidas ---
     chk_auto_gerar = ft.Checkbox(
         label="Gerar tabela de partidas (rodadas) automaticamente após a criação",
         value=False,
@@ -45,7 +44,6 @@ def tela_criar_torneio(ao_concluir, ao_voltar):
     times_col = ft.Column(spacing=8)
     status = ft.Text("", size=13)
 
-    # --- Container Dinâmico dos Jogadores (Dentro do Modal) ---
     jogadores_col = ft.Column(spacing=8, scroll=ft.ScrollMode.ADAPTIVE)
     linha_alvo_atual = None
 
@@ -183,10 +181,8 @@ def tela_criar_torneio(ao_concluir, ao_voltar):
             return
 
         try:
-            # 1. Cria o Torneio
             id_torneio = TorneioRepository.criar_torneio(nome_torneio, inicio or None, fim or None)
 
-            # 2. Cria e vincula os Times e Jogadores
             for nome_t, escudo_t, elenco_customizado in times_data:
                 id_time = TimeRepository.criar_time(nome_t, escudo_t or None)
                 TorneioRepository.vincular_time(id_torneio, id_time)
@@ -195,19 +191,18 @@ def tela_criar_torneio(ao_concluir, ao_voltar):
                     for jog in elenco_customizado:
                         JogadorRepository.criar_jogador(jog["nome"], jog["funcao"], id_time)
 
-            # 3. Executa a Auto-geração de Partidas se a Checkbox estiver marcada
             msg_partidas = ""
             if chk_auto_gerar.value:
                 total_jogos = PartidasLogic.gerar_e_salvar(id_torneio)
                 msg_partidas = f" e {total_jogos} jogos gerados!"
 
-            status.value = f"✅ Torneio '{nome_torneio}' criado com {len(times_data)} times{msg_partidas}."
+            status.value = f"Torneio '{nome_torneio}' criado com {len(times_data)} times{msg_partidas}."
             status.color = ft.colors.GREEN_300
             status.update()
             ao_concluir()
 
         except Exception as ex:
-            status.value = f"❌ Erro ao criar torneio/partidas: {ex}"
+            status.value = f"Erro ao criar torneio/partidas: {ex}"
             status.color = ft.colors.RED_400
             status.update()
 
@@ -241,7 +236,6 @@ def tela_criar_torneio(ao_concluir, ao_voltar):
             ft.Text("Dados do Torneio", size=14, color=ft.colors.WHITE70, weight="bold"),
             campo_nome,
 
-            # Ajuste de layout: Acoplamos os campos de texto com os IconButtons de calendário
             ft.Row([
                 ft.Row([
                     campo_inicio,
@@ -263,7 +257,6 @@ def tela_criar_torneio(ao_concluir, ao_voltar):
                 ], spacing=0, tight=True)
             ], spacing=10, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
 
-            # Posicionamento estratégico da nova caixinha de marcação
             ft.Container(content=chk_auto_gerar, padding=ft.padding.only(top=5, bottom=5)),
 
             ft.Divider(color=ft.colors.WHITE10, height=1),

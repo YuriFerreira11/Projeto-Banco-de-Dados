@@ -1,5 +1,5 @@
 import flet as ft
-from src.repository import partidas_repository as partidas_repo
+from src.repository.partidas_repository import PartidaRepository as partidas_repo
 
 
 class RodadasView:
@@ -15,7 +15,6 @@ class RodadasView:
         gm = partida.get("gols_m")
         gv = partida.get("gols_v")
 
-        # Largura reduzida para 80 para caber no modal
         campo_casa = ft.TextField(
             label=partida["casa"], value="" if gm is None else str(gm),
             width=80, text_align=ft.TextAlign.CENTER, border_color=ft.colors.AMBER,
@@ -42,7 +41,7 @@ class RodadasView:
                 self.page.update()
                 self.router.refresh_current_view()
             else:
-                erro_txt.value = "❌ Erro ao salvar resultado no banco."
+                erro_txt.value = "Erro ao salvar resultado no banco."
                 erro_txt.update()
 
         edit_dialog = ft.AlertDialog(

@@ -9,7 +9,7 @@ def executar_arquivo_sql(cursor, caminho_arquivo, descricao):
     print(f" Executando: {descricao}...")
 
     if not caminho_arquivo.exists():
-        print(f" [❌] Erro: Arquivo não encontrado em {caminho_arquivo}")
+        print(f"Erro: Arquivo não encontrado em {caminho_arquivo}")
         return False
 
     with caminho_arquivo.open("r", encoding="utf-8") as arquivo:
@@ -17,11 +17,11 @@ def executar_arquivo_sql(cursor, caminho_arquivo, descricao):
 
     try:
         cursor.execute(conteudo_sql)
-        print(f" [✔] {descricao} concluído com sucesso!")
+        print(f"{descricao} concluído com sucesso!")
         return True
 
     except Exception as e:
-        print(f" [❌] Erro ao executar {descricao}: {e}")
+        print(f"Erro ao executar {descricao}: {e}")
         return False
 
 
@@ -50,10 +50,10 @@ def apagar_estrutura_banco():
         conn.autocommit = True
         with conn.cursor() as cursor:
             cursor.execute(comando_limpeza)
-        print(" [✔] Banco de dados limpo com sucesso (0 tabelas restantes).")
+        print("Banco de dados limpo com sucesso (0 tabelas restantes).")
         return True
     except Exception as e:
-        print(f" [❌] Erro ao limpar o banco de dados: {e}")
+        print(f"Erro ao limpar o banco de dados: {e}")
         return False
     finally:
         conn.close()
@@ -72,7 +72,7 @@ def criar_estrutura_banco():
         with conn.cursor() as cursor:
             if executar_arquivo_sql(cursor, CREATE_TABLES_PATH, "Criação de Tabelas Físicas"):
                 if executar_arquivo_sql(cursor, CREATE_VIEWS_PATH, "Criação da Camada de Visões (Views)"):
-                    print(" [✔] Toda a infraestrutura foi mapeada com sucesso.")
+                    print("Toda a infraestrutura foi mapeada com sucesso.")
                     return True
         return False
     except Exception as e:
@@ -200,7 +200,7 @@ def menu_principal():
                 print("\nEncerrando o gerenciador de infraestrutura. Até mais!")
                 sys.exit(0)
             case _:
-                print("\n[❌] Opção inválida! Digite um número de 0 a 4.")
+                print("\nOpção inválida! Digite um número de 0 a 4.")
 
         input("\nPressione Enter para continuar...")
 

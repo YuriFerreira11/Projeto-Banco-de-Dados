@@ -28,10 +28,7 @@ def tela_classificacao(dados_classificacao, ao_clicar_torneio=None):
             ft.DataRow(
                 color=bg_linha,
                 cells=[
-                    # POS - Alinhado à Esquerda
                     celula_texto(f"{i + 1}º", is_bold=True, cor=ft.colors.AMBER if i < 3 else ft.colors.WHITE),
-
-                    # TIME - Escudo e Nome alinhados perfeitamente à esquerda
                     ft.DataCell(
                         ft.Container(
                             content=ft.Row([
@@ -44,7 +41,6 @@ def tela_classificacao(dados_classificacao, ao_clicar_torneio=None):
                         )
                     ),
 
-                    # P, V, GP, GC, SG - Todos alinhados à esquerda para consistência
                     celula_texto(getattr(item, 'pontos', 0), is_bold=True),
                     celula_texto(getattr(item, 'vitorias', 0)),
                     celula_texto(getattr(item, 'gf', getattr(item, 'gols_pro', 0))),

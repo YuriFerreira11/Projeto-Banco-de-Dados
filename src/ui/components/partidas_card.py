@@ -56,7 +56,7 @@ def criar_card_partidas(partidas):
             border_radius=12,
             border=ft.border.all(1, ft.colors.WHITE10),
             margin=ft.margin.only(bottom=10),
-            width=800,  # Largura fixa para manter o padrão na tela centralizada
+            width=800,
         )
 
     # Retorna uma coluna centralizada com todos os cards

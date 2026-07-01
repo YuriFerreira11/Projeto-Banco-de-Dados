@@ -27,7 +27,6 @@ def criar_tabela_classificacao(lista_objetos):
         columns=colunas,
         rows=linhas,
         heading_row_color=ft.colors.SURFACE_VARIANT,
-        # 'border' com 'b' minúsculo é o segredo aqui
         border=ft.border.all(1, ft.colors.OUTLINE_VARIANT),
         border_radius=10,
         column_spacing=40

@@ -32,6 +32,7 @@ class PartidasLogic:
                    for j in turno]
         return turno + returno
 
+
     @staticmethod
     def gerar_e_salvar(id_torneio: int) -> int:
         times = TimeRepository.get_times_por_torneio(id_torneio)
