@@ -257,7 +257,17 @@ class Router:
                 ft.Row(
                     [
                         ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=lambda _: self.navigate("times")),
-                        ft.Icon(ft.icons.SHIELD_ROUNDED, size=32, color=ft.colors.PRIMARY),
+
+                        # Bloco corrigido para carregar a imagem ou o ícone padrão
+                        ft.Image(
+                            src=time.escudo if getattr(time, "escudo", None) else None,
+                            width=32,
+                            height=32,
+                            fit=ft.ImageFit.CONTAIN,
+                        ) if getattr(time, "escudo", None) else ft.Icon(
+                            ft.icons.SHIELD_ROUNDED, size=32, color=ft.colors.PRIMARY
+                        ),
+
                         ft.Text(getattr(time, "nome", "Time"), size=24, weight="bold"),
                         badge_colocacao,
                     ],
