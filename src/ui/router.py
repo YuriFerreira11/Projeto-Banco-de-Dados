@@ -216,6 +216,87 @@ class Router:
                 )
             )
 
+        # ---- FUNÇÃO PARA ABRIR O HISTÓRICO DE PARTIDAS EM MODAL CENTRALIZADO CORRIGIDA ----
+        def abrir_historico(e):
+            partidas = TimeRepository.get_historico_partidas(time.nome)
+
+            lista_jogos = ft.ListView(expand=True, spacing=10)
+
+            if not partidas:
+                lista_jogos.controls.append(
+                    ft.Text("Nenhum histórico de partida finalizada encontrado.", italic=True,
+                            color=ft.colors.WHITE38)
+                )
+            else:
+                for p in partidas:
+                    gm = p.get("gols_m")
+                    gv = p.get("gols_v")
+                    placar = f"{gm}   ×   {gv}"
+
+                    linha_partida = ft.Row([
+                        # Time Mandante
+                        ft.Row([
+                            ft.Text(p["casa"], weight="bold"),
+                            ft.Image(src=p.get("escudo_casa"), width=22, height=22,
+                                     fit=ft.ImageFit.CONTAIN) if p.get("escudo_casa")
+                            else ft.Icon(ft.icons.SHIELD, size=22, color=ft.colors.WHITE24),
+                        ], alignment=ft.MainAxisAlignment.END, expand=2, tight=True),
+
+                        # Placar
+                        ft.Text(placar, size=18, weight="bold", color=ft.colors.AMBER,
+                                text_align=ft.TextAlign.CENTER, expand=1),
+
+                        # Time Visitante
+                        ft.Row([
+                            ft.Image(src=p.get("escudo_fora"), width=22, height=22,
+                                     fit=ft.ImageFit.CONTAIN) if p.get("escudo_fora")
+                            else ft.Icon(ft.icons.SHIELD, size=22, color=ft.colors.WHITE24),
+                            ft.Text(p["fora"], weight="bold"),
+                        ], alignment=ft.MainAxisAlignment.START, expand=2, tight=True),
+                    ], alignment=ft.MainAxisAlignment.CENTER)
+
+                    lista_jogos.controls.append(
+                        ft.Container(
+                            content=linha_partida,
+                            padding=ft.padding.symmetric(horizontal=16, vertical=14),
+                            bgcolor=ft.colors.WHITE10,
+                            border_radius=10,
+                        )
+                    )
+
+            # Criando o AlertDialog com as referências certas
+            modal_historico = ft.AlertDialog(
+                content=ft.Container(
+                    content=ft.Column([
+                        ft.Row([
+                            ft.Text(f"Histórico de Partidas - {time.nome}", size=18, weight="bold"),
+                            ft.IconButton(
+                                icon=ft.icons.CLOSE,
+                                on_click=lambda _: o_fechar_modal()
+                            )
+                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                        ft.Divider(color=ft.colors.WHITE10),
+                        ft.Container(
+                            content=lista_jogos,
+                            expand=True,
+                            margin=ft.margin.only(top=5)
+                        )
+                    ], tight=True),
+                    padding=10,
+                    width=550,  # Largura ideal alinhada com o design das rodadas
+                    height=450,  # Altura máxima controlada
+                ),
+            )
+
+            def o_fechar_modal():
+                modal_historico.open = False
+                self.page.update()
+
+            # Adiciona e abre o componente correto
+            self.page.overlay.append(modal_historico)
+            modal_historico.open = True
+            self.page.update()
+
         acoes_header = []
         if self.modo_admin:
             acoes_header.append(
@@ -257,8 +338,6 @@ class Router:
                 ft.Row(
                     [
                         ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=lambda _: self.navigate("times")),
-
-                        # Bloco corrigido para carregar a imagem ou o ícone padrão
                         ft.Image(
                             src=time.escudo if getattr(time, "escudo", None) else None,
                             width=32,
@@ -267,9 +346,15 @@ class Router:
                         ) if getattr(time, "escudo", None) else ft.Icon(
                             ft.icons.SHIELD_ROUNDED, size=32, color=ft.colors.PRIMARY
                         ),
-
                         ft.Text(getattr(time, "nome", "Time"), size=24, weight="bold"),
                         badge_colocacao,
+
+                        ft.TextButton(
+                            "Ver Histórico",
+                            icon=ft.icons.HISTORY,
+                            on_click=abrir_historico,
+                            style=ft.ButtonStyle(color=ft.colors.AMBER)
+                        ),
                     ],
                     spacing=10,
                 ),

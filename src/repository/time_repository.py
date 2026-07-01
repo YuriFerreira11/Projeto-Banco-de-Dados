@@ -73,3 +73,39 @@ class TimeRepository:
             raise e
         finally:
             conn.close()
+
+    @staticmethod
+    def get_historico_partidas(nome_time):
+        conn = ConnectionFactory.get_connection()
+        if not conn: return []
+        try:
+            with conn.cursor() as cur:
+                # Modifiquei o SELECT para buscar os dados no mesmo formato estrutural dos cards de partidas
+                cur.execute("""
+                            SELECT v.Time_Mandante,
+                                   (SELECT Escudo FROM Time WHERE Nome = v.Time_Mandante)  AS Escudo_Mandante,
+                                   v.Placar_Mandante,
+                                   v.Placar_Visitante,
+                                   (SELECT Escudo FROM Time WHERE Nome = v.Time_Visitante) AS Escudo_Visitante,
+                                   v.Time_Visitante
+                            FROM Time t
+                                     JOIN VIEW_RESULTADOS_E_AGENDAMENTOS v
+                                          ON t.Nome = v.Time_Mandante OR t.Nome = v.Time_Visitante
+                            WHERE t.Nome = %s
+                              AND v.Status = 'Finalizada'
+                            ORDER BY v.Data_Hora DESC
+                            """, (nome_time,))
+
+                return [
+                    {
+                        "casa": r[0],
+                        "escudo_casa": r[1],
+                        "gols_m": r[2],
+                        "gols_v": r[3],
+                        "escudo_fora": r[4],
+                        "fora": r[5]
+                    }
+                    for r in cur.fetchall()
+                ]
+        finally:
+            conn.close()
