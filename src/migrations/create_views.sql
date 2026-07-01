@@ -1,67 +1,68 @@
--- 1. Classificação Geral
--- Só conta partidas FINALIZADAS (Finalizada = TRUE)
--- Times sem partidas finalizadas não aparecem (LEFT JOIN via Torneio_Time)
-CREATE OR REPLACE VIEW View_classificacao_geral AS
+-- =============================================================================
+-- 1. CLASSIFICAÇÃO GERAL
+-- =============================================================================
+CREATE OR REPLACE VIEW View_Classificacao_Geral AS
 SELECT
-    tt.id_torneio,
-    t.nome        AS nome_time,
-    t.escudo,
+    tt.ID_Torneio,
+    t.Nome AS Nome_Time,
+    t.Escudo,
     ROW_NUMBER() OVER (
-        PARTITION BY tt.id_torneio
+        PARTITION BY tt.ID_Torneio
         ORDER BY
             COALESCE(SUM(CASE
-                WHEN (t.id_time = p.id_time_mandante AND p.gols_m > p.gols_v) OR
-                     (t.id_time = p.id_time_visitante AND p.gols_v > p.gols_m) THEN 3
-                WHEN p.gols_m = p.gols_v THEN 1
+                WHEN (t.ID_Time = p.ID_Time_Mandante AND p.Gols_M > p.Gols_V) OR
+                     (t.ID_Time = p.ID_Time_Visitante AND p.Gols_V > p.Gols_M) THEN 3
+                WHEN p.Gols_M = p.Gols_V THEN 1
                 ELSE 0
             END), 0) DESC,
             COALESCE(SUM(CASE
-                WHEN t.id_time = p.id_time_mandante THEN p.gols_m - p.gols_v
-                ELSE p.gols_v - p.gols_m
+                WHEN t.ID_Time = p.ID_Time_Mandante THEN p.Gols_M - p.Gols_V
+                ELSE p.Gols_V - p.Gols_M
             END), 0) DESC
-    ) AS posicao,
+    ) AS Posicao,
     COALESCE(SUM(CASE
-        WHEN (t.id_time = p.id_time_mandante AND p.gols_m > p.gols_v) OR
-             (t.id_time = p.id_time_visitante AND p.gols_v > p.gols_m) THEN 3
-        WHEN p.gols_m = p.gols_v THEN 1
+        WHEN (t.ID_Time = p.ID_Time_Mandante AND p.Gols_M > p.Gols_V) OR
+             (t.ID_Time = p.ID_Time_Visitante AND p.Gols_V > p.Gols_M) THEN 3
+        WHEN p.Gols_M = p.Gols_V THEN 1
         ELSE 0
-    END), 0) AS pontos,
-    COUNT(p.id_partida)                                                           AS partidas_jogadas,
+    END), 0) AS Pontos,
+    COUNT(p.ID_Partida) AS Partidas_Jogadas,
     COALESCE(SUM(CASE
-        WHEN (t.id_time = p.id_time_mandante AND p.gols_m > p.gols_v) OR
-             (t.id_time = p.id_time_visitante AND p.gols_v > p.gols_m) THEN 1
+        WHEN (t.ID_Time = p.ID_Time_Mandante AND p.Gols_M > p.Gols_V) OR
+             (t.ID_Time = p.ID_Time_Visitante AND p.Gols_V > p.Gols_M) THEN 1
         ELSE 0
-    END), 0) AS vitorias,
-    COALESCE(SUM(CASE WHEN p.gols_m = p.gols_v THEN 1 ELSE 0 END), 0)           AS empates,
+    END), 0) AS Vitorias,
+    COALESCE(SUM(CASE WHEN p.Gols_M = p.Gols_V THEN 1 ELSE 0 END), 0) AS Empates,
     COALESCE(SUM(CASE
-        WHEN (t.id_time = p.id_time_mandante AND p.gols_m < p.gols_v) OR
-             (t.id_time = p.id_time_visitante AND p.gols_v < p.gols_m) THEN 1
+        WHEN (t.ID_Time = p.ID_Time_Mandante AND p.Gols_M < p.Gols_V) OR
+             (t.ID_Time = p.ID_Time_Visitante AND p.Gols_V < p.Gols_M) THEN 1
         ELSE 0
-    END), 0) AS derrotas,
-    COALESCE(SUM(CASE WHEN t.id_time = p.id_time_mandante THEN p.gols_m ELSE p.gols_v END), 0) AS gf,
-    COALESCE(SUM(CASE WHEN t.id_time = p.id_time_mandante THEN p.gols_v ELSE p.gols_m END), 0) AS gs,
+    END), 0) AS Derrotas,
+    COALESCE(SUM(CASE WHEN t.ID_Time = p.ID_Time_Mandante THEN p.Gols_M ELSE p.Gols_V END), 0) AS GF,
+    COALESCE(SUM(CASE WHEN t.ID_Time = p.ID_Time_Mandante THEN p.Gols_V ELSE p.Gols_M END), 0) AS GS,
     COALESCE(SUM(CASE
-        WHEN t.id_time = p.id_time_mandante THEN p.gols_m - p.gols_v
-        ELSE p.gols_v - p.gols_m
-    END), 0) AS saldo_gols
+        WHEN t.ID_Time = p.ID_Time_Mandante THEN p.Gols_M - p.Gols_V
+        ELSE p.Gols_V - p.Gols_M
+    END), 0) AS Saldo_Gols
 FROM Torneio_Time tt
-JOIN Time t ON t.id_time = tt.id_time
+JOIN Time t ON t.ID_Time = tt.ID_Time
 LEFT JOIN Partidas p
-    ON p.id_torneio = tt.id_torneio
-    AND (t.id_time = p.id_time_mandante OR t.id_time = p.id_time_visitante)
-    AND p.finalizada = TRUE
-GROUP BY tt.id_torneio, t.id_time, t.nome, t.escudo;
+    ON p.ID_Torneio = tt.ID_Torneio
+    AND (t.ID_Time = p.ID_Time_Mandante OR t.ID_Time = p.ID_Time_Visitante)
+    AND p.Finalizada = TRUE
+GROUP BY tt.ID_Torneio, t.ID_Time, t.Nome, t.Escudo;
 
-
--- 2. Resultados e Agendamentos
+-- =============================================================================
+-- 2. RESULTADOS E AGENDAMENTOS
+-- =============================================================================
 CREATE OR REPLACE VIEW VIEW_RESULTADOS_E_AGENDAMENTOS AS
 SELECT
     p.Data_Hora,
     p.Local,
-    tm.Nome            AS Time_Mandante,
-    p.Gols_M           AS Placar_Mandante,
-    p.Gols_V           AS Placar_Visitante,
-    tv.Nome            AS Time_Visitante,
+    tm.Nome AS Time_Mandante,
+    p.Gols_M AS Placar_Mandante,
+    p.Gols_V AS Placar_Visitante,
+    tv.Nome AS Time_Visitante,
     CASE
         WHEN p.Finalizada THEN 'Finalizada'
         ELSE 'Agendada'
@@ -70,8 +71,9 @@ FROM Partidas p
 JOIN Time tm ON p.ID_Time_Mandante = tm.ID_Time
 JOIN Time tv ON p.ID_Time_Visitante = tv.ID_Time;
 
-
--- 3. Histórico Individual
+-- =============================================================================
+-- 3. HISTÓRICO INDIVIDUAL DO TIME
+-- =============================================================================
 CREATE OR REPLACE VIEW VIEW_HISTORICO_INDIVIDUAL_TIME AS
 SELECT
     t.Nome AS Time_Pesquisado,
@@ -82,5 +84,5 @@ SELECT
     CASE WHEN t.Nome = v.Time_Mandante THEN 'Mandante' ELSE 'Visitante' END AS Condicao,
     v.Status
 FROM Time t
-CROSS JOIN VIEW_RESULTADOS_E_AGENDAMENTOS v
-WHERE t.Nome = v.Time_Mandante OR t.Nome = v.Time_Visitante;
+JOIN VIEW_RESULTADOS_E_AGENDAMENTOS v
+    ON t.Nome = v.Time_Mandante OR t.Nome = v.Time_Visitante;
