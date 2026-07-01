@@ -66,22 +66,22 @@ def partidas_da_rodada(id_torneio: int, rodada: int) -> list:
 
 def registrar_resultado(id_partida: int, gols_casa: int, gols_fora: int) -> bool:
     """
-    Atualiza o placar de uma partida.
-    A classificação é recalculada automaticamente pela View_classificacao_geral.
+    Atualiza o placar de uma partida (permite edições).
     """
     conn = ConnectionFactory.get_connection()
     if not conn:
         return False
     try:
         with conn.cursor() as cur:
+            # 1. Verifica apenas se a partida existe no banco
             cur.execute(
-                "SELECT Finalizada FROM Partidas WHERE ID_Partida=%s",
+                "SELECT 1 FROM Partidas WHERE ID_Partida=%s",
                 (id_partida,)
             )
-            row = cur.fetchone()
-            if not row or row[0]:  # não encontrada ou já finalizada
+            if not cur.fetchone():  # Se retornar None, a partida não existe
                 return False
 
+            # 2. Faz o UPDATE diretamente (não importa se já estava finalizada ou não)
             cur.execute(
                 "UPDATE Partidas SET Gols_M=%s, Gols_V=%s, Finalizada=TRUE WHERE ID_Partida=%s",
                 (gols_casa, gols_fora, id_partida)
@@ -90,7 +90,8 @@ def registrar_resultado(id_partida: int, gols_casa: int, gols_fora: int) -> bool
         return True
     except Exception as e:
         print(f"Erro ao registrar resultado: {e}")
-        conn.rollback()
+        if conn:
+            conn.rollback()
         return False
     finally:
         conn.close()
