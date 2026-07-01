@@ -1,5 +1,5 @@
 import random
-from src.repository import partidas_repository as partidas_repo
+from src.repository.partidas_repository import PartidaRepository
 from src.repository.time_repository import TimeRepository
 
 
@@ -44,5 +44,5 @@ class PartidasLogic:
         nomes      = [t.nome for t in times]
         map_nome_id = {t.nome: t.id_time for t in times}
         tabela     = PartidasLogic.gerar_tabela(nomes)
-        partidas_repo.salvar_tabela(tabela, id_torneio, map_nome_id)
+        PartidaRepository.salvar_tabela(tabela, id_torneio, map_nome_id)
         return len(tabela)

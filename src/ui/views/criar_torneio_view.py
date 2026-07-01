@@ -2,7 +2,7 @@ import flet as ft
 from src.repository.torneio_repository import TorneioRepository
 from src.repository.time_repository import TimeRepository
 from src.repository.jogador_repository import JogadorRepository
-from services.partidas_logic import PartidasLogic  # Importando a lógica de partidas
+from src.services.partidas_logic import PartidasLogic  # Importando a lógica de partidas
 
 
 def tela_criar_torneio(ao_concluir, ao_voltar):
