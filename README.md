@@ -12,7 +12,6 @@ O diferencial técnico reside na integração de um motor de processamento em Py
 ## 🚀 Tecnologias Utilizadas
 * **Linguagem:** Python 3.x 
 * **Interface Gráfica (GUI):** Flet (Framework baseado em Flutter com visual Material Design 3)
-* **Mapeamento Objeto-Relacional (ORM):** SQLAlchemy 
 * **Banco de Dados:** PostgreSQL
 
 ## ⚙️ Requisitos do Sistema (Funcionalidades)
