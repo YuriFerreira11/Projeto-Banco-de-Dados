@@ -100,3 +100,36 @@ class TorneioRepository:
 
     # Substituindo a sua variável antiga pelo dado dinâmico do banco:
     ADMIN_SENHA = obter_senha_admin()
+
+
+    @staticmethod
+    def deletar_torneio(id_torneio):
+        conn = ConnectionFactory.get_connection()
+        if not conn:
+            return False
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT ID_Time FROM Torneio_Time WHERE ID_Torneio = %s", (id_torneio,))
+                ids_times = [row[0] for row in cur.fetchall()]
+
+                cur.execute("DELETE FROM Torneio WHERE ID_Torneio = %s", (id_torneio,))
+
+                if ids_times:
+                    for id_time in ids_times:
+                        cur.execute(
+                            "SELECT COUNT(*) FROM Torneio_Time WHERE ID_Time = %s",
+                            (id_time,)
+                        )
+                        em_outro_torneio = cur.fetchone()[0]
+
+                        if em_outro_torneio == 0:
+                            cur.execute("DELETE FROM Jogador WHERE ID_Time = %s", (id_time,))
+                            cur.execute("DELETE FROM Time WHERE ID_Time = %s", (id_time,))
+
+            conn.commit()
+            return True
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            conn.close()

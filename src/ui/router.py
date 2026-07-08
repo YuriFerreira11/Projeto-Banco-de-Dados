@@ -119,7 +119,13 @@ class Router:
     # ------------------------------------------------------------------ #
     def view_selecao_torneio(self):
         torneios = TorneioRepository.get_torneios()
-        return tela_selecao_torneio(torneios, self.selecionar_torneio, self.ir_criar_torneio)
+        return tela_selecao_torneio(
+            torneios,
+            self.selecionar_torneio,
+            self.ir_criar_torneio,
+            modo_admin=self.modo_admin,
+            router=self
+        )
 
     def selecionar_torneio(self, torneio):
         self.torneio_ativo = torneio
@@ -348,6 +354,7 @@ class Router:
                         ),
                     ],
                     spacing=10,
+                    tight=True,
                 ),
                 ft.Row(acoes_header),
             ],

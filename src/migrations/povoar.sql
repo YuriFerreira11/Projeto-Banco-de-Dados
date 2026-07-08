@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 1. LIMPEZA DO BANCO
 -- =============================================================================
-TRUNCATE TABLE Partidas, Jogador, Torneio_Time, Torneio_Admin, Time, Torneio, Admin
+TRUNCATE TABLE Partidas, Jogador, Torneio_Time, Time, Torneio, Admin
 RESTART IDENTITY CASCADE;
 
 -- =============================================================================

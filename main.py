@@ -20,31 +20,32 @@ def main(page: ft.Page):
     )
 
     router = Router(main_content, page)
-    acao_pendente = {"valor": "gerar"}
 
+    # --- DIÁLOGO DE LOGIN (MODO ADMIN) ---
     senha_field = ft.TextField(
-        label="Senha do Admin", password=True, can_reveal_password=True,
-        autofocus=True, width=300, border_color=ft.colors.AMBER,
+        label="Senha do Admin",
+        password=True,
+        can_reveal_password=True,
+        autofocus=True,
+        # width=300,  <-- Removido para esticar o card todo
+        border_color=ft.colors.AMBER,
+        on_submit=lambda e: confirmar_admin(e)  # <-- Enter agora confirma!
     )
     erro_senha = ft.Text("", color=ft.colors.RED_400, size=12)
-    dialog_desc = ft.Text("", color=ft.colors.WHITE70, size=13)
 
     def confirmar_admin(e):
         if senha_field.value == ADMIN_SENHA:
             admin_dialog.open = False
+            router.modo_admin = True
+            atualizar_visual_botao_admin()
+            router.refresh_current_view()
             page.update()
-            if acao_pendente["valor"] == "gerar":
-                _executar_geracao_tabela()
-            elif acao_pendente["valor"] == "toggle_admin":
-                router.modo_admin = True
-                atualizar_visual_botao_admin()
-                router.refresh_current_view()
         else:
             erro_senha.value = "Senha incorreta."
             senha_field.value = ""
             page.update()
 
-    def fechar_dialog(e):
+    def fechar_admin_dialog(e):
         admin_dialog.open = False
         senha_field.value = ""
         erro_senha.value = ""
@@ -53,9 +54,14 @@ def main(page: ft.Page):
     admin_dialog = ft.AlertDialog(
         modal=True,
         title=ft.Row([ft.Icon(ft.icons.LOCK, color=ft.colors.AMBER), ft.Text("Acesso Restrito", weight="bold")]),
-        content=ft.Column([dialog_desc, ft.Container(height=8), senha_field, erro_senha], tight=True, spacing=4),
+        content=ft.Column([
+            ft.Text("Digite a credencial master para ativar o Modo Admin do sistema.", color=ft.colors.WHITE70, size=13),
+            ft.Container(height=8),
+            senha_field,
+            erro_senha
+        ], tight=True, spacing=4),
         actions=[
-            ft.TextButton("Cancelar", on_click=fechar_dialog, style=ft.ButtonStyle(color=ft.colors.WHITE54)),
+            ft.TextButton("Cancelar", on_click=fechar_admin_dialog, style=ft.ButtonStyle(color=ft.colors.WHITE54)),
             ft.ElevatedButton("Confirmar", icon=ft.icons.CHECK, bgcolor=ft.colors.AMBER, color=ft.colors.BLACK,
                               on_click=confirmar_admin),
         ],
@@ -63,18 +69,11 @@ def main(page: ft.Page):
     )
     page.overlay.append(admin_dialog)
 
-    def _abrir_dialog(acao: str, descricao: str):
-        if not router.torneio_ativo:
-            page.show_snack_bar(ft.SnackBar(ft.Text("Selecione um torneio primeiro!")))
-            return
-        acao_pendente["valor"] = acao
-        dialog_desc.value = descricao
-        senha_field.value = ""
-        erro_senha.value = ""
-        admin_dialog.open = True
-        page.update()
 
-    def _executar_geracao_tabela():
+    # --- DIÁLOGO DE CONFIRMAÇÃO (GERAR TABELA) ---
+    def executar_geracao(e):
+        confirm_gerar_dialog.open = False
+        page.update()
         try:
             total = PartidasLogic.gerar_e_salvar(router.torneio_ativo.id_torneio)
             page.show_snack_bar(
@@ -83,14 +82,45 @@ def main(page: ft.Page):
         except Exception as ex:
             page.show_snack_bar(ft.SnackBar(ft.Text(f"Erro: {str(ex)}"), bgcolor=ft.colors.RED_700))
 
+    def fechar_confirm_dialog(e):
+        confirm_gerar_dialog.open = False
+        page.update()
+
+    confirm_gerar_dialog = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Confirmar Ação", weight="bold"),
+        content=ft.Text("Você tem certeza que deseja gerar a tabela automaticamente?", size=14),
+        actions=[
+            ft.TextButton("Cancelar", on_click=fechar_confirm_dialog, style=ft.ButtonStyle(color=ft.colors.WHITE54)),
+            ft.ElevatedButton("Criar", icon=ft.icons.PLAY_ARROW, bgcolor=ft.colors.AMBER, color=ft.colors.BLACK,
+                              on_click=executar_geracao),
+        ],
+        actions_alignment=ft.MainAxisAlignment.END,
+    )
+    page.overlay.append(confirm_gerar_dialog)
+
+
+    # --- ENTRADAS DE CLIQUE ---
     def tratar_click_admin(e):
         if router.modo_admin:
             router.modo_admin = False
             atualizar_visual_botao_admin()
             router.refresh_current_view()
         else:
-            _abrir_dialog("toggle_admin", "Digite a credencial master para ativar o Modo Admin do sistema.")
+            senha_field.value = ""
+            erro_senha.value = ""
+            admin_dialog.open = True
+            page.update()
 
+    def tratar_click_gerar(e):
+        if not router.torneio_ativo:
+            page.show_snack_bar(ft.SnackBar(ft.Text("Selecione um torneio primeiro!")))
+            return
+        confirm_gerar_dialog.open = True
+        page.update()
+
+
+    # --- COMPONENTES VISUAIS ---
     def atualizar_visual_botao_admin():
         if router.modo_admin:
             btn_modo_admin.content.controls[0].value = "MODO ADMIN: ATIVO"
@@ -138,7 +168,7 @@ def main(page: ft.Page):
                     ft.Text("GERAR TABELA", color=ft.colors.WHITE70, size=11, weight="bold"),
                     ft.Icon(ft.icons.AUTO_AWESOME, size=14, color=ft.colors.WHITE70),
                 ], tight=True),
-                on_click=lambda _: _abrir_dialog("gerar", "Digite a senha para gerar a tabela de jogos do torneio."),
+                on_click=tratar_click_gerar,
                 visible=False
             ),
             ft.Text("|", color=ft.colors.WHITE24, visible=False),
@@ -153,13 +183,11 @@ def main(page: ft.Page):
         content=ft.Row([
             ft.Container(content=btn_voltar, expand=1, alignment=ft.alignment.center_left),
             ft.Container(
-                content=ft.Row([
-                    ft.Icon(ft.icons.EMOJI_EVENTS, color=ft.colors.AMBER, size=30),
-                    ft.Text("TORNEIO MANAGER", size=24, weight="bold"),
-                ], alignment=ft.MainAxisAlignment.CENTER, tight=True),
-                expand=2, alignment=ft.alignment.center
+                content=ft.Text("TORNEIO MANAGER", size=24, weight="bold"),
+                expand=1,
+                alignment=ft.alignment.center
             ),
-            ft.Container(content=btn_admin_container, expand=2, alignment=ft.alignment.center_right)
+            ft.Container(content=btn_admin_container, expand=1, alignment=ft.alignment.center_right)
         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
         padding=ft.padding.symmetric(horizontal=25, vertical=15),
         bgcolor=ft.colors.BLACK54,
