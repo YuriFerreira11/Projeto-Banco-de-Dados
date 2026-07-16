@@ -4,6 +4,3 @@ database:
   dbname: "db_nome"
   user: "usuario"
   password: "senha"
-
-chave_Fernet:
-  SECRET_KEY: "sua_chave_aq"
